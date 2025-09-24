@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factorio Blueprint Editor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #569cd6;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background-color: #2d2d30;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #3e3e42;
+        }
+        
+        .section h2 {
+            color: #4ec9b0;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        
+        .json-display {
+            background-color: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .search-replace-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .search-box, .replace-box {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .search-box label, .replace-box label {
+            color: #9cdcfe;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"] {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #1177bb;
+        }
+        
+        button:disabled {
+            background-color: #3e3e42;
+            cursor: not-allowed;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .error {
+            color: #f44747;
+            background-color: #2d1b1b;
+            border: 1px solid #5c1a1a;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #4ec9b0;
+            background-color: #1b2d1b;
+            border: 1px solid #1a5c1a;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #858585;
+        }
+        
+        .highlight {
+            background-color: #ffff00;
+            color: #000000;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Factorio Blueprint Editor</h1>
+        
+        <div class="section">
+            <h2>Blueprint String Input</h2>
+            <textarea id="blueprintInput" placeholder="Paste your Factorio blueprint string here..."></textarea>
+            <div class="button-group">
+                <button id="decodeBtn">Decode Blueprint</button>
+                <button id="clearBtn">Clear All</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Decoded JSON</h2>
+            <div id="jsonDisplay" class="json-display">No blueprint decoded yet...</div>
+            <div class="status" id="jsonStatus"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Search & Replace</h2>
+            <div class="search-replace-container">
+                <div class="search-box">
+                    <label for="searchInput">Search:</label>
+                    <input type="text" id="searchInput" placeholder="Enter text to search for...">
+                </div>
+                <div class="replace-box">
+                    <label for="replaceInput">Replace with:</label>
+                    <input type="text" id="replaceInput" placeholder="Enter replacement text...">
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="searchBtn">Search</button>
+                <button id="replaceBtn">Replace</button>
+                <button id="replaceAllBtn">Replace All</button>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Export</h2>
+            <div class="button-group">
+                <button id="encodeBtn">Encode & Copy to Clipboard</button>
+                <button id="downloadBtn">Download Blueprint</button>
+            </div>
+            <div id="exportStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        class BlueprintEditor {
+            constructor() {
+                this.blueprintData = null;
+                this.jsonString = '';
+                this.searchResults = [];
+                this.currentSearchIndex = 0;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.setupGlobalPaste();
+            }
+            
+            initializeElements() {
+                this.blueprintInput = document.getElementById('blueprintInput');
+                this.jsonDisplay = document.getElementById('jsonDisplay');
+                this.jsonStatus = document.getElementById('jsonStatus');
+                this.searchInput = document.getElementById('searchInput');
+                this.replaceInput = document.getElementById('replaceInput');
+                this.searchResults = document.getElementById('searchResults');
+                this.exportStatus = document.getElementById('exportStatus');
+                
+                this.decodeBtn = document.getElementById('decodeBtn');
+                this.clearBtn = document.getElementById('clearBtn');
+                this.searchBtn = document.getElementById('searchBtn');
+                this.replaceBtn = document.getElementById('replaceBtn');
+                this.replaceAllBtn = document.getElementById('replaceAllBtn');
+                this.encodeBtn = document.getElementById('encodeBtn');
+                this.downloadBtn = document.getElementById('downloadBtn');
+            }
+            
+            bindEvents() {
+                this.decodeBtn.addEventListener('click', () => this.decodeBlueprint());
+                this.clearBtn.addEventListener('click', () => this.clearAll());
+                this.searchBtn.addEventListener('click', () => this.search());
+                this.replaceBtn.addEventListener('click', () => this.replace());
+                this.replaceAllBtn.addEventListener('click', () => this.replaceAll());
+                this.encodeBtn.addEventListener('click', () => this.encodeAndCopy());
+                this.downloadBtn.addEventListener('click', () => this.downloadBlueprint());
+                
+                this.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.search();
+                });
+            }
+            
+            setupGlobalPaste() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'v' && document.activeElement === document.body) {
+                        e.preventDefault();
+                        navigator.clipboard.readText().then(text => {
+                            this.blueprintInput.value = text;
+                            this.blueprintInput.focus();
+                        }).catch(err => {
+                            console.log('Could not read clipboard:', err);
+                        });
+                    }
+                });
+            }
+            
+            async decodeBlueprint() {
+                const input = this.blueprintInput.value.trim();
+                if (!input) {
+                    this.showError('Please enter a blueprint string');
+                    return;
+                }
+                
+                try {
+                    // Remove first character (version prefix)
+                    const withoutPrefix = input.substring(1);
+                    
+                    // Base64 decode to binary string
+                    const binaryString = atob(withoutPrefix);
+                    
+                    // Convert binary string to Uint8Array
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    // Decompress using pako (with zlib header)
+                    const decompressed = pako.inflate(bytes, { to: 'string' });
+                    
+                    // Parse JSON
+                    this.blueprintData = JSON.parse(decompressed);
+                    this.jsonString = JSON.stringify(this.blueprintData, null, 2);
+                    
+                    this.displayJson();
+                    this.showSuccess('Blueprint decoded successfully!');
+                    
+                } catch (error) {
+                    this.showError('Failed to decode blueprint: ' + error.message);
+                    console.error('Decode error:', error);
+                }
+            }
+            
+            displayJson() {
+                this.jsonDisplay.textContent = this.jsonString;
+                this.jsonStatus.textContent = `JSON size: ${this.jsonString.length} characters`;
+            }
+            
+            search() {
+                const searchTerm = this.searchInput.value.trim();
+                if (!searchTerm) {
+                    this.showError('Please enter a search term');
+                    return;
+                }
+                
+                if (!this.jsonString) {
+                    this.showError('No JSON to search in. Please decode a blueprint first.');
+                    return;
+                }
+                
+                const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                const matches = [...this.jsonString.matchAll(regex)];
+                
+                if (matches.length === 0) {
+                    this.searchResults.innerHTML = '<div class="error">No matches found</div>';
+                    return;
+                }
+                
+                this.searchResults.innerHTML = `
+                    <div class="success">Found ${matches.length} match${matches.length === 1 ? '' : 'es'}</div>
+                    <div class="status">Click "Replace" to replace the first match, or "Replace All" to replace all matches</div>
+                `;
+                
+                // Highlight first match
+                this.highlightMatch(matches[0]);
+            }
+            
+            highlightMatch(match) {
+                const start = match.index;
+                const end = start + match[0].length;
+                const before = this.jsonString.substring(0, start);
+                const highlighted = this.jsonString.substring(start, end);
+                const after = this.jsonString.substring(end);
+                
+                this.jsonDisplay.innerHTML = 
+                    this.escapeHtml(before) + 
+                    `<span class="highlight">${this.escapeHtml(highlighted)}</span>` + 
+                    this.escapeHtml(after);
+            }
+            
+            replace() {
+                const searchTerm = this.searchInput.value.trim();
+                const replaceTerm = this.replaceInput.value;
+                
+                if (!searchTerm) {
+                    this.showError('Please enter a search term');
+                    return;
+                }
+                
+                if (!this.jsonString) {
+                    this.showError('No JSON to search in. Please decode a blueprint first.');
+                    return;
+                }
+                
+                const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+                const match = this.jsonString.match(regex);
+                
+                if (!match) {
+                    this.showError('No match found to replace');
+                    return;
+                }
+                
+                this.jsonString = this.jsonString.replace(regex, replaceTerm);
+                this.blueprintData = JSON.parse(this.jsonString);
+                this.displayJson();
+                this.showSuccess('Replacement completed');
+            }
+            
+            replaceAll() {
+                const searchTerm = this.searchInput.value.trim();
+                const replaceTerm = this.replaceInput.value;
+                
+                if (!searchTerm) {
+                    this.showError('Please enter a search term');
+                    return;
+                }
+                
+                if (!this.jsonString) {
+                    this.showError('No JSON to search in. Please decode a blueprint first.');
+                    return;
+                }
+                
+                const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                const matches = [...this.jsonString.matchAll(regex)];
+                
+                if (matches.length === 0) {
+                    this.showError('No matches found to replace');
+                    return;
+                }
+                
+                this.jsonString = this.jsonString.replace(regex, replaceTerm);
+                this.blueprintData = JSON.parse(this.jsonString);
+                this.displayJson();
+                this.showSuccess(`Replaced ${matches.length} match${matches.length === 1 ? '' : 'es'}`);
+            }
+            
+            async encodeAndCopy() {
+                if (!this.blueprintData) {
+                    this.showError('No blueprint data to encode. Please decode a blueprint first.');
+                    return;
+                }
+                
+                try {
+                    // Convert JSON to string
+                    const jsonString = JSON.stringify(this.blueprintData);
+                    
+                    // Compress using pako (with zlib header)
+                    const compressed = pako.deflate(jsonString);
+                    
+                    // Convert Uint8Array to base64 directly
+                    const base64 = btoa(String.fromCharCode.apply(null, compressed));
+                    
+                    // Add version prefix
+                    const blueprintString = '0' + base64;
+                    
+                    // Copy to clipboard
+                    await navigator.clipboard.writeText(blueprintString);
+                    this.showSuccess('Blueprint encoded and copied to clipboard!');
+                    
+                } catch (error) {
+                    this.showError('Failed to encode blueprint: ' + error.message);
+                    console.error('Encode error:', error);
+                }
+            }
+            
+            downloadBlueprint() {
+                if (!this.blueprintData) {
+                    this.showError('No blueprint data to download. Please decode a blueprint first.');
+                    return;
+                }
+                
+                try {
+                    // Convert JSON to string
+                    const jsonString = JSON.stringify(this.blueprintData);
+                    
+                    // Compress using pako (with zlib header)
+                    const compressed = pako.deflate(jsonString);
+                    
+                    // Convert Uint8Array to base64 directly
+                    const base64 = btoa(String.fromCharCode.apply(null, compressed));
+                    
+                    // Add version prefix
+                    const blueprintString = '0' + base64;
+                    
+                    // Create download
+                    const blob = new Blob([blueprintString], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'blueprint.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    this.showSuccess('Blueprint downloaded!');
+                    
+                } catch (error) {
+                    this.showError('Failed to download blueprint: ' + error.message);
+                    console.error('Download error:', error);
+                }
+            }
+            
+            clearAll() {
+                this.blueprintInput.value = '';
+                this.jsonDisplay.textContent = 'No blueprint decoded yet...';
+                this.jsonStatus.textContent = '';
+                this.searchInput.value = '';
+                this.replaceInput.value = '';
+                this.searchResults.innerHTML = '';
+                this.exportStatus.innerHTML = '';
+                this.blueprintData = null;
+                this.jsonString = '';
+            }
+            
+            showError(message) {
+                this.exportStatus.innerHTML = `<div class="error">${message}</div>`;
+            }
+            
+            showSuccess(message) {
+                this.exportStatus.innerHTML = `<div class="success">${message}</div>`;
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
+        // Initialize the editor when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new BlueprintEditor();
+        });
+    </script>
+    
+    <!-- Include pako for zlib compression/decompression -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+</body>
+</html>
