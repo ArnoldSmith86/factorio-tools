@@ -222,6 +222,72 @@
             color: #ce9178;
             font-weight: bold;
         }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background-color: #2d2d30;
+            color: #d4d4d4;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background-color: #3e3e42;
+        }
+        
+        .filter-btn.active {
+            background-color: #0e639c;
+            color: white;
+            border-color: #0e639c;
+        }
+        
+        .filter-btn-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: auto;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            text-align: center;
+            border-radius: 4px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -50%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            white-space: nowrap;
+            border: 1px solid #3e3e42;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -239,6 +305,29 @@
         
         <div class="section">
             <h2>Entities</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn" data-filter="all">All</button>
+                <button class="filter-btn active" data-filter="entities">
+                    <img src="https://wiki.factorio.com/images/thumb/Transport_belt.png/32px-Transport_belt.png" alt="Entities" class="filter-btn-icon" onerror="this.style.display='none'">
+                    Entities
+                </button>
+                <button class="filter-btn" data-filter="modules">
+                    <img src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="Modules" class="filter-btn-icon" onerror="this.style.display='none'">
+                    Modules
+                </button>
+                <button class="filter-btn" data-filter="recipes">
+                    <img src="https://wiki.factorio.com/images/thumb/Assembling_machine_1.png/32px-Assembling_machine_1.png" alt="Recipes" class="filter-btn-icon" onerror="this.style.display='none'">
+                    Recipes
+                </button>
+                <button class="filter-btn" data-filter="conditions">
+                    <img src="https://wiki.factorio.com/images/thumb/Decider_combinator.png/32px-Decider_combinator.png" alt="Conditions" class="filter-btn-icon" onerror="this.style.display='none'">
+                    Circuit Conditions
+                </button>
+                <button class="filter-btn" data-filter="requests">
+                    <img src="https://wiki.factorio.com/images/thumb/Storage_chest.png/32px-Storage_chest.png" alt="Requests" class="filter-btn-icon" onerror="this.style.display='none'">
+                    Logistic Requests
+                </button>
+            </div>
             <div id="entityAnalysis"></div>
         </div>
         
@@ -286,6 +375,7 @@
                 this.searchResults = [];
                 this.currentSearchIndex = 0;
                 this.replaceButtons = [];
+                this.activeFilters = new Set(['entities']); // Start with entities selected
                 
                 this.initializeElements();
                 this.bindEvents();
@@ -322,6 +412,13 @@
                 
                 this.searchInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') this.search();
+                });
+                
+                // Add filter button event listeners
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('filter-btn')) {
+                        this.toggleFilter(e.target.dataset.filter);
+                    }
                 });
             }
             
@@ -560,6 +657,46 @@
                 }
             }
             
+            toggleFilter(filterType) {
+                if (filterType === 'all') {
+                    // Toggle all filters
+                    const allFilters = ['entities', 'modules', 'recipes', 'conditions', 'requests'];
+                    const allActive = allFilters.every(filter => this.activeFilters.has(filter));
+                    
+                    if (allActive) {
+                        // If all are active, deactivate all
+                        this.activeFilters.clear();
+                    } else {
+                        // If not all are active, activate all
+                        allFilters.forEach(filter => this.activeFilters.add(filter));
+                    }
+                } else {
+                    // Toggle individual filter
+                    if (this.activeFilters.has(filterType)) {
+                        this.activeFilters.delete(filterType);
+                    } else {
+                        this.activeFilters.add(filterType);
+                    }
+                }
+                
+                // Update button states
+                this.updateFilterButtons();
+                this.analyzeEntities();
+            }
+            
+            updateFilterButtons() {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    const filterType = btn.dataset.filter;
+                    if (filterType === 'all') {
+                        const allFilters = ['entities', 'modules', 'recipes', 'conditions', 'requests'];
+                        const allActive = allFilters.every(filter => this.activeFilters.has(filter));
+                        btn.classList.toggle('active', allActive);
+                    } else {
+                        btn.classList.toggle('active', this.activeFilters.has(filterType));
+                    }
+                });
+            }
+            
             analyzeEntities() {
                 if (!this.blueprintData || !this.blueprintData.blueprint || !this.blueprintData.blueprint.entities) {
                     this.entityAnalysis.innerHTML = '<div class="error">No entities found in blueprint</div>';
@@ -567,27 +704,50 @@
                 }
                 
                 const entities = this.blueprintData.blueprint.entities;
-                const entityCounts = {};
+                let dataToAnalyze = [];
                 
-                // Count entities by type and quality
-                entities.forEach(entity => {
-                    const entityName = entity.name;
-                    const quality = entity.quality || 'normal'; // Default quality is 'normal'
-                    const key = `${entityName}_${quality}`;
+                // Collect data from all active filters
+                if (this.activeFilters.has('entities')) {
+                    dataToAnalyze = dataToAnalyze.concat(this.getEntityData(entities));
+                }
+                if (this.activeFilters.has('modules')) {
+                    dataToAnalyze = dataToAnalyze.concat(this.getModuleData(entities));
+                }
+                if (this.activeFilters.has('recipes')) {
+                    dataToAnalyze = dataToAnalyze.concat(this.getRecipeData(entities));
+                }
+                if (this.activeFilters.has('conditions')) {
+                    dataToAnalyze = dataToAnalyze.concat(this.getConditionData(entities));
+                }
+                if (this.activeFilters.has('requests')) {
+                    dataToAnalyze = dataToAnalyze.concat(this.getRequestData(entities));
+                }
+                
+                if (dataToAnalyze.length === 0) {
+                    const activeFilterNames = Array.from(this.activeFilters).join(', ');
+                    this.entityAnalysis.innerHTML = `<div class="error">No data found for selected filters: ${activeFilterNames}</div>`;
+                    return;
+                }
+                
+                // Count items by type, name, and quality
+                const itemCounts = {};
+                dataToAnalyze.forEach(item => {
+                    const key = `${item.type}_${item.name}_${item.quality}`;
                     
-                    if (entityCounts[key]) {
-                        entityCounts[key].count++;
+                    if (itemCounts[key]) {
+                        itemCounts[key].count++;
                     } else {
-                        entityCounts[key] = {
-                            name: entityName,
-                            quality: quality,
-                            count: 1
+                        itemCounts[key] = {
+                            name: item.name,
+                            quality: item.quality,
+                            count: 1,
+                            type: item.type
                         };
                     }
                 });
                 
-                // Sort entities by count (descending)
-                const sortedEntities = Object.values(entityCounts)
+                // Sort items by count (descending)
+                const sortedItems = Object.values(itemCounts)
                     .sort((a, b) => b.count - a.count);
                 
                 // Clear existing replace buttons
@@ -595,56 +755,72 @@
                 
                 // Generate table HTML
                 let tableHTML = '<table class="entity-table">';
-                tableHTML += '<thead><tr><th>Downgrade</th><th>Entity</th><th>Upgrade</th><th>Count</th></tr></thead>';
+                tableHTML += '<thead><tr><th>Downgrade</th><th>Item</th><th>Upgrade</th><th>Count</th></tr></thead>';
                 tableHTML += '<tbody>';
                 
-                sortedEntities.forEach(entity => {
-                    const imageUrl = toImageUrl(entity.name);
-                    const qualityText = entity.quality.charAt(0).toUpperCase() + entity.quality.slice(1);
-                    const qualityImageUrl = qualityText === 'Normal' ? '' : qualityToImage(entity.quality);
+                sortedItems.forEach(item => {
+                    const imageUrl = toImageUrl(item.name);
+                    const qualityText = item.quality.charAt(0).toUpperCase() + item.quality.slice(1);
+                    const qualityImageUrl = qualityText === 'Normal' ? '' : qualityToImage(item.quality);
+                    const displayName = item.quality === 'normal' ? item.name : `${qualityText} ${item.name}`;
                     
                     tableHTML += `
                         <tr>
                             <td class="downgrade-column" style="text-align: right;"></td>
                             <td>
-                                <div class="entity-image-container">
-                                    <img src="${imageUrl}" alt="${entity.name}" class="entity-image" onerror="this.style.display='none'">
-                                    <div class="quality-overlay">
-                                        <img src="${qualityImageUrl}" alt="${qualityText}" onerror="this.style.display='none'">
+                                <div class="tooltip">
+                                    <div class="entity-image-container">
+                                        <img src="${imageUrl}" alt="${item.name}" class="entity-image" onerror="this.style.display='none'">
+                                        <div class="quality-overlay">
+                                            <img src="${qualityImageUrl}" alt="${qualityText}" onerror="this.style.display='none'">
+                                        </div>
                                     </div>
+                                    <span class="tooltiptext">${displayName}</span>
                                 </div>
                             </td>
                             <td class="upgrade-column"></td>
-                            <td class="entity-count">${entity.count}</td>
+                            <td class="entity-count">${item.count}</td>
                         </tr>
                     `;
                 });
                 
                 tableHTML += '</tbody></table>';
                 
-                const totalEntities = entities.length;
-                const uniqueEntityTypes = sortedEntities.length;
+                const totalItems = dataToAnalyze.length;
+                const uniqueItemTypes = sortedItems.length;
                 
+                const activeFilterNames = Array.from(this.activeFilters).join(', ');
                 this.entityAnalysis.innerHTML = `
-                    <div class="success">Found ${totalEntities} entities of ${uniqueEntityTypes} different types (including quality variants)</div>
+                    <div class="success">Found ${totalItems} items of ${uniqueItemTypes} different types (including quality variants) from: ${activeFilterNames}</div>
                     ${tableHTML}
                 `;
                 
                 // Create ReplaceButton instances for each row
                 const tableRows = this.entityAnalysis.querySelectorAll('tbody tr');
-                sortedEntities.forEach((entity, index) => {
+                sortedItems.forEach((item, index) => {
                     const row = tableRows[index];
-                    const fullEntityName = entity.quality === 'normal' ? entity.name : `${entity.quality} ${entity.name}`;
-                    const upgradePath = this.findUpgradePath(fullEntityName);
-                    const downgradeTargets = upgradePath ? this.getAllDowngradeTargets(fullEntityName, upgradePath) : [];
-                    const upgradeTargets = upgradePath ? this.getAllUpgradeTargets(fullEntityName, upgradePath) : [];
+                    const fullEntityName = item.quality === 'normal' ? item.name : `${item.quality} ${item.name}`;
                     
-                    const currentEntityName = entity.quality === 'normal' ? entity.name : `${entity.quality} ${entity.name}`;
+                    let upgradePath, downgradeTargets, upgradeTargets;
+                    
+                    if (item.type === 'entity' || item.type === 'module') {
+                        // Use full upgrade paths for entities and modules
+                        upgradePath = this.findUpgradePath(fullEntityName);
+                        downgradeTargets = upgradePath ? this.getAllDowngradeTargets(fullEntityName, upgradePath) : [];
+                        upgradeTargets = upgradePath ? this.getAllUpgradeTargets(fullEntityName, upgradePath) : [];
+                    } else {
+                        // Use quality-only paths for recipes, conditions, and requests
+                        upgradePath = this.getQualityUpgradePath(item.name);
+                        downgradeTargets = this.getAllDowngradeTargets(fullEntityName, upgradePath);
+                        upgradeTargets = this.getAllUpgradeTargets(fullEntityName, upgradePath);
+                    }
+                    
+                    const currentEntityName = item.quality === 'normal' ? item.name : `${item.quality} ${item.name}`;
                     
                     // Create downgrade buttons
                     const downgradeColumn = row.querySelector('.downgrade-column');
                     downgradeTargets.forEach(target => {
-                        const replaceButton = new ReplaceButton(this, currentEntityName, target, row);
+                        const replaceButton = new ReplaceButton(this, currentEntityName, target, row, item.type);
                         replaceButton.render(downgradeColumn);
                         this.replaceButtons.push(replaceButton);
                     });
@@ -652,16 +828,102 @@
                     // Create upgrade buttons
                     const upgradeColumn = row.querySelector('.upgrade-column');
                     upgradeTargets.forEach(target => {
-                        const replaceButton = new ReplaceButton(this, currentEntityName, target, row);
+                        const replaceButton = new ReplaceButton(this, currentEntityName, target, row, item.type);
                         replaceButton.render(upgradeColumn);
                         this.replaceButtons.push(replaceButton);
                     });
                 });
             }
             
+            
+            getEntityData(entities) {
+                return entities.map(entity => ({
+                    name: entity.name,
+                    quality: entity.quality || 'normal',
+                    type: 'entity'
+                }));
+            }
+            
+            getModuleData(entities) {
+                const moduleData = [];
+                entities.forEach(entity => {
+                    if (entity.items) {
+                        entity.items.forEach(item => {
+                            if (item.id && item.id.name) {
+                                moduleData.push({
+                                    name: item.id.name,
+                                    quality: item.id.quality || 'normal',
+                                    type: 'module'
+                                });
+                            }
+                        });
+                    }
+                });
+                return moduleData;
+            }
+            
+            getRecipeData(entities) {
+                const recipeData = [];
+                entities.forEach(entity => {
+                    if (entity.recipe) {
+                        recipeData.push({
+                            name: entity.recipe,
+                            quality: entity.recipe_quality || 'normal',
+                            type: 'recipe'
+                        });
+                    }
+                });
+                return recipeData;
+            }
+            
+            getConditionData(entities) {
+                const conditionData = [];
+                entities.forEach(entity => {
+                    if (entity.control_behavior && entity.control_behavior.circuit_condition) {
+                        const condition = entity.control_behavior.circuit_condition;
+                        if (condition.first_signal && condition.first_signal.name) {
+                            conditionData.push({
+                                name: condition.first_signal.name,
+                                quality: condition.first_signal.quality || 'normal',
+                                type: 'condition'
+                            });
+                        }
+                    }
+                });
+                return conditionData;
+            }
+            
+            getRequestData(entities) {
+                const requestData = [];
+                entities.forEach(entity => {
+                    if (entity.request_filters && entity.request_filters.sections) {
+                        entity.request_filters.sections.forEach(section => {
+                            if (section.filters) {
+                                section.filters.forEach(filter => {
+                                    if (filter.name) {
+                                        requestData.push({
+                                            name: filter.name,
+                                            quality: filter.quality || 'normal',
+                                            type: 'request'
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+                return requestData;
+            }
+            
             findUpgradePath(entityName) {
-                // Only look for exact match (including quality)
+                // Only look for exact match (including quality) for entities and modules
                 return upgrade_paths.find(path => path.includes(entityName));
+            }
+            
+            getQualityUpgradePath(itemName) {
+                // For recipes, conditions, and requests, only provide quality variants
+                const qualities = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
+                return qualities.map(quality => quality === 'normal' ? itemName : `${quality} ${itemName}`);
             }
             
             getBaseEntityName(entityName) {
@@ -712,11 +974,14 @@
                 let modified = false;
                 const entities = this.blueprintData.blueprint.entities;
                 
+                // Track specific changes to avoid double-processing
+                const changeTracker = new Set();
+                
                 // Process each replacement
                 replacements.forEach(replacement => {
-                    const { from, to } = replacement;
+                    const { from, to, type } = replacement;
                     
-                    // Parse the target entity to extract quality and base name
+                    // Parse the target item to extract quality and base name
                     const targetParts = to.split(' ');
                     let targetQuality = 'normal';
                     let targetBaseName = to;
@@ -726,29 +991,49 @@
                         targetBaseName = targetParts.slice(1).join(' ');
                     }
                     
-                    // Find and replace entities
-                    entities.forEach(entity => {
-                        if (entity.edited) return; // Skip already edited entities
-                        
-                        const entityName = entity.name;
-                        const entityQuality = entity.quality || 'normal';
-                        const fullEntityName = entityQuality === 'normal' ? entityName : `${entityQuality} ${entityName}`;
-                        
-                        if (fullEntityName === from) {
-                            entity.name = targetBaseName;
-                            entity.quality = targetQuality;
-                            entity.edited = true; // Mark as edited to prevent double replacement
-                            modified = true;
+                    // Parse the source item
+                    const sourceParts = from.split(' ');
+                    let sourceQuality = 'normal';
+                    let sourceBaseName = from;
+                    
+                    if (sourceParts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(sourceParts[0])) {
+                        sourceQuality = sourceParts[0];
+                        sourceBaseName = sourceParts.slice(1).join(' ');
+                    }
+                    
+                    // Apply replacements based on data type
+                    entities.forEach((entity, entityIndex) => {
+                        switch (type) {
+                            case 'entity':
+                                if (this.replaceEntityData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                                    modified = true;
+                                }
+                                break;
+                            case 'module':
+                                if (this.replaceModuleData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                                    modified = true;
+                                }
+                                break;
+                            case 'recipe':
+                                if (this.replaceRecipeData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                                    modified = true;
+                                }
+                                break;
+                            case 'condition':
+                                if (this.replaceConditionData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                                    modified = true;
+                                }
+                                break;
+                            case 'request':
+                                if (this.replaceRequestData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                                    modified = true;
+                                }
+                                break;
                         }
                     });
                 });
                 
                 if (modified) {
-                    // Clean up the edited markers
-                    entities.forEach(entity => {
-                        delete entity.edited;
-                    });
-                    
                     // Update the JSON string and refresh display
                     this.jsonString = JSON.stringify(this.blueprintData, null, 2);
                     this.displayJson();
@@ -756,6 +1041,92 @@
                 }
                 
                 return modified;
+            }
+            
+            replaceEntityData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+                const entityQuality = entity.quality || 'normal';
+                if (entity.name === sourceBaseName && entityQuality === sourceQuality) {
+                    const changeKey = `entity_${entityIndex}_name`;
+                    if (!changeTracker.has(changeKey)) {
+                        entity.name = targetBaseName;
+                        entity.quality = targetQuality;
+                        changeTracker.add(changeKey);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            replaceModuleData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+                if (entity.items) {
+                    return entity.items.some((item, itemIndex) => {
+                        if (item.id && item.id.name === sourceBaseName && (item.id.quality || 'normal') === sourceQuality) {
+                            const changeKey = `entity_${entityIndex}_item_${itemIndex}_name`;
+                            if (!changeTracker.has(changeKey)) {
+                                item.id.name = targetBaseName;
+                                item.id.quality = targetQuality;
+                                changeTracker.add(changeKey);
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                }
+                return false;
+            }
+            
+            replaceRecipeData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+                const recipeQuality = entity.recipe_quality || 'normal';
+                if (entity.recipe === sourceBaseName && recipeQuality === sourceQuality) {
+                    const changeKey = `entity_${entityIndex}_recipe`;
+                    if (!changeTracker.has(changeKey)) {
+                        entity.recipe = targetBaseName;
+                        entity.recipe_quality = targetQuality;
+                        changeTracker.add(changeKey);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            replaceConditionData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+                if (entity.control_behavior && entity.control_behavior.circuit_condition) {
+                    const condition = entity.control_behavior.circuit_condition;
+                    if (condition.first_signal && condition.first_signal.name === sourceBaseName && 
+                        (condition.first_signal.quality || 'normal') === sourceQuality) {
+                        const changeKey = `entity_${entityIndex}_condition_signal`;
+                        if (!changeTracker.has(changeKey)) {
+                            condition.first_signal.name = targetBaseName;
+                            condition.first_signal.quality = targetQuality;
+                            changeTracker.add(changeKey);
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            
+            replaceRequestData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+                if (entity.request_filters && entity.request_filters.sections) {
+                    return entity.request_filters.sections.some((section, sectionIndex) => {
+                        if (section.filters) {
+                            return section.filters.some((filter, filterIndex) => {
+                                if (filter.name === sourceBaseName && (filter.quality || 'normal') === sourceQuality) {
+                                    const changeKey = `entity_${entityIndex}_section_${sectionIndex}_filter_${filterIndex}`;
+                                    if (!changeTracker.has(changeKey)) {
+                                        filter.name = targetBaseName;
+                                        filter.quality = targetQuality;
+                                        changeTracker.add(changeKey);
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            });
+                        }
+                        return false;
+                    });
+                }
+                return false;
             }
             
             replaceEntity(from, to) {
@@ -791,6 +1162,10 @@
                 this.exportStatus.innerHTML = '';
                 this.blueprintData = null;
                 this.jsonString = '';
+                this.activeFilters = new Set(['entities']); // Reset to default
+                
+                // Reset filter buttons
+                this.updateFilterButtons();
             }
             
             showError(message) {
@@ -809,11 +1184,12 @@
         }
         
         class ReplaceButton {
-            constructor(area, from, to, rowElement) {
+            constructor(area, from, to, rowElement, dataType = 'entity') {
                 this.area = area;
                 this.from = from;
                 this.to = to;
                 this.rowElement = rowElement;
+                this.dataType = dataType;
                 this.isActive = false;
                 this.buttonElement = null;
             }
@@ -875,7 +1251,7 @@
             }
             
             getReplacement() {
-                return this.isActive ? { from: this.from, to: this.to } : null;
+                return this.isActive ? { from: this.from, to: this.to, type: this.dataType } : null;
             }
         }
 
@@ -936,6 +1312,11 @@
             [ 'land-mine', 'uncommon land-mine', 'rare land-mine', 'epic land-mine', 'legendary land-mine' ],
             [ 'radar', 'uncommon radar', 'rare radar', 'epic radar', 'legendary radar' ],
             [ 'stone-wall', 'uncommon stone-wall', 'rare stone-wall', 'epic stone-wall', 'legendary stone-wall' ],
+
+            [ 'productivity-module', 'uncommon productivity-module', 'productivity-module-2', 'rare productivity-module', 'uncommon productivity-module-2', 'epic productivity-module', 'rare productivity-module-2', 'productivity-module-3', 'legendary productivity-module', 'epic productivity-module-2', 'uncommon productivity-module-3', 'legendary productivity-module-2', 'rare productivity-module-3', 'epic productivity-module-3', 'legendary productivity-module-3' ],
+            [ 'speed-module', 'uncommon speed-module', 'speed-module-2', 'rare speed-module', 'epic speed-module', 'uncommon speed-module-2', 'rare speed-module-2', 'speed-module-3', 'legendary speed-module', 'epic speed-module-2', 'uncommon speed-module-3', 'legendary speed-module-2', 'rare speed-module-3', 'epic speed-module-3', 'legendary speed-module-3' ],
+            [ 'quality-module', 'uncommon quality-module', 'rare quality-module', 'epic quality-module', 'quality-module-2', 'quality-module-3', 'legendary quality-module', 'uncommon quality-module-2', 'uncommon quality-module-3', 'rare quality-module-2', 'epic quality-module-2', 'rare quality-module-3', 'epic quality-module-3', 'legendary quality-module-2', 'legendary quality-module-3' ],
+            [ 'efficiency-module', 'uncommon efficiency-module', 'efficiency-module-2', 'rare efficiency-module', 'efficiency-module-3', 'uncommon efficiency-module-2', 'epic efficiency-module', 'rare efficiency-module-2', 'uncommon efficiency-module-3', 'legendary efficiency-module', 'epic efficiency-module-2', 'rare efficiency-module-3', 'epic efficiency-module-3', 'legendary efficiency-module-2', 'legendary efficiency-module-3' ],
         ];
 
         function qualityToImage(quality) {
@@ -1044,6 +1425,7 @@
                 'stone': 'Stone.png/32px-Stone.png',
                 'wood': 'Wood.png/32px-Wood.png',
                 'irongear': 'Iron_gear_wheel.png/32px-Iron_gear_wheel.png',
+                'iron gear wheel': 'Iron_gear_wheel.png/32px-Iron_gear_wheel.png',
                 'copper cable': 'Copper_cable.png/32px-Copper_cable.png',
                 'electronic circuit': 'Electronic_circuit.png/32px-Electronic_circuit.png',
                 'advanced circuit': 'Advanced_circuit.png/32px-Advanced_circuit.png',
@@ -1263,7 +1645,11 @@
                 'artillery targeting remote': 'Artillery_targeting_remote.png/32px-Artillery_targeting_remote.png',
                 'rocket turret': 'Rocket_turret.png/32px-Rocket_turret.png',
                 'tesla turret': 'Tesla_turret.png/32px-Tesla_turret.png',
-                'railgun turret': 'Railgun_turret.png/32px-Railgun_turret.png'
+                'railgun turret': 'Railgun_turret.png/32px-Railgun_turret.png',
+                'ice melting': 'Ice_melting.png/32px-Ice_melting.png',
+                'plastic bar': 'Plastic_bar.png/32px-Plastic_bar.png',
+                'casting low density structure': 'Casting_low_density_structure.png/32px-Casting_low_density_structure.png',
+                'sulfur': 'Sulfur.png/32px-Sulfur.png',
             };
             return 'https://wiki.factorio.com/images/thumb/' + FACTORIO_ITEMS_32px[itemName.replace(/-/g, ' ')];
         }
