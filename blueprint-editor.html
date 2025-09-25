@@ -178,10 +178,33 @@
             background-color: #3a3a3a;
         }
         
+        .entity-image-container {
+            position: relative;
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            vertical-align: middle;
+        }
+        
         .entity-image {
             width: 32px;
             height: 32px;
             vertical-align: middle;
+        }
+        
+        .quality-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40%;
+            height: 40%;
+            font-size: 0;
+        }
+        
+        .quality-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         
         .entity-count {
@@ -192,6 +215,12 @@
         .entity-name {
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             color: #d4d4d4;
+        }
+        
+        .entity-quality {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            color: #ce9178;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -525,32 +554,50 @@
                 const entities = this.blueprintData.blueprint.entities;
                 const entityCounts = {};
                 
-                // Count entities by type
+                // Count entities by type and quality
                 entities.forEach(entity => {
                     const entityName = entity.name;
-                    if (entityCounts[entityName]) {
-                        entityCounts[entityName]++;
+                    const quality = entity.quality || 'normal'; // Default quality is 'normal'
+                    const key = `${entityName}_${quality}`;
+                    
+                    if (entityCounts[key]) {
+                        entityCounts[key].count++;
                     } else {
-                        entityCounts[entityName] = 1;
+                        entityCounts[key] = {
+                            name: entityName,
+                            quality: quality,
+                            count: 1
+                        };
                     }
                 });
                 
                 // Sort entities by count (descending)
-                const sortedEntities = Object.entries(entityCounts)
-                    .sort(([,a], [,b]) => b - a);
+                const sortedEntities = Object.values(entityCounts)
+                    .sort((a, b) => b.count - a.count);
                 
                 // Generate table HTML
                 let tableHTML = '<table class="entity-table">';
-                tableHTML += '<thead><tr><th>Image</th><th>Entity Name</th><th>Count</th></tr></thead>';
+                tableHTML += '<thead><tr><th>Image</th><th>Entity Name</th><th>Quality</th><th>Count</th></tr></thead>';
                 tableHTML += '<tbody>';
                 
-                sortedEntities.forEach(([entityName, count]) => {
-                    const imageUrl = toImageUrl(entityName);
+                sortedEntities.forEach(entity => {
+                    const imageUrl = toImageUrl(entity.name);
+                    const qualityText = entity.quality.charAt(0).toUpperCase() + entity.quality.slice(1);
+                    const qualityImageUrl = qualityText === 'Normal' ? '' : qualityToImage(entity.quality);
+                    
                     tableHTML += `
                         <tr>
-                            <td><img src="${imageUrl}" alt="${entityName}" class="entity-image" onerror="this.style.display='none'"></td>
-                            <td class="entity-name">${entityName}</td>
-                            <td class="entity-count">${count}</td>
+                            <td>
+                                <div class="entity-image-container">
+                                    <img src="${imageUrl}" alt="${entity.name}" class="entity-image" onerror="this.style.display='none'">
+                                    <div class="quality-overlay">
+                                        <img src="${qualityImageUrl}" alt="${qualityText}" onerror="this.style.display='none'">
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="entity-name">${entity.name}</td>
+                            <td class="entity-quality">${qualityText}</td>
+                            <td class="entity-count">${entity.count}</td>
                         </tr>
                     `;
                 });
@@ -561,7 +608,7 @@
                 const uniqueEntityTypes = sortedEntities.length;
                 
                 this.entityAnalysis.innerHTML = `
-                    <div class="success">Found ${totalEntities} entities of ${uniqueEntityTypes} different types</div>
+                    <div class="success">Found ${totalEntities} entities of ${uniqueEntityTypes} different types (including quality variants)</div>
                     ${tableHTML}
                 `;
             }
@@ -599,6 +646,10 @@
             new BlueprintEditor();
         });
 
+
+        function qualityToImage(quality) {
+            return `https://wiki.factorio.com/images/Quality_${quality}.png`;
+        }
 
         function toImageUrl(itemName) {
             // Dictionary mapping Factorio item names to their image URLs on the wiki
@@ -655,6 +706,7 @@
                 'requester chest': 'Requester_chest.png/32px-Requester_chest.png',
                 'roboport': 'Roboport.png/32px-Roboport.png',
                 'lamp': 'Lamp.png/32px-Lamp.png',
+                'small lamp': 'Lamp.png/32px-Lamp.png',
                 'red wire': 'Red_wire.png/32px-Red_wire.png',
                 'green wire': 'Green_wire.png/32px-Green_wire.png',
                 'arithmetic combinator': 'Arithmetic_combinator.png/32px-Arithmetic_combinator.png',
@@ -909,6 +961,7 @@
                 'discharge defense': 'Discharge_defense.png/32px-Discharge_defense.png',
                 'discharge defense remote': 'Discharge_defense_remote.png/32px-Discharge_defense_remote.png',
                 'wall': 'Wall.png/32px-Wall.png',
+                'stone wall': 'Wall.png/32px-Wall.png',
                 'gate': 'Gate.png/32px-Gate.png',
                 'radar': 'Radar.png/32px-Radar.png',
                 'land mine': 'Land_mine.png/32px-Land_mine.png',
