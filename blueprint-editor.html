@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factorio Blueprint Editor</title>
+    <link rel="icon" href="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png">
+    <title>Factorio Blueprint Lab</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -23,6 +24,7 @@
             color: #569cd6;
             text-align: center;
             margin-bottom: 30px;
+            font-size: 42px;
         }
         
         .section {
@@ -288,11 +290,15 @@
             visibility: visible;
             opacity: 1;
         }
+        
+        .section.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Factorio Blueprint Editor</h1>
+        <h1><img src="https://wiki.factorio.com/favicon.ico" style="height:32px"><img src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png"><img src="https://wiki.factorio.com/images/thumb/Lab.png/32px-Lab.png"> Factorio Blueprint Lab</h1>
         
         <div class="section">
             <h2>Blueprint String Input</h2>
@@ -303,8 +309,8 @@
             </div>
         </div>
         
-        <div class="section">
-            <h2>Entities</h2>
+        <div class="section hidden" id="entitiesSection">
+            <h2>Downgrade / Upgrade</h2>
             <div class="filter-buttons">
                 <button class="filter-btn" data-filter="all">All</button>
                 <button class="filter-btn active" data-filter="entities">
@@ -331,7 +337,7 @@
             <div id="entityAnalysis"></div>
         </div>
         
-        <div class="section">
+        <div class="section hidden" id="searchSection">
             <h2>Search & Replace</h2>
             <div class="search-replace-container">
                 <div class="search-box">
@@ -351,7 +357,7 @@
             <div id="searchResults"></div>
         </div>
         
-        <div class="section">
+        <div class="section hidden" id="exportSection">
             <h2>Export</h2>
             <div class="button-group">
                 <button id="encodeBtn">Encode & Copy to Clipboard</button>
@@ -360,7 +366,7 @@
             <div id="exportStatus"></div>
         </div>
         
-        <div class="section">
+        <div class="section hidden" id="jsonSection">
             <h2>JSON</h2>
             <div id="jsonDisplay" class="json-display">No blueprint decoded yet...</div>
             <div class="status" id="jsonStatus"></div>
@@ -380,6 +386,8 @@
                 this.initializeElements();
                 this.bindEvents();
                 this.setupGlobalPaste();
+                this.loadFromStorage();
+                this.updateSectionVisibility();
             }
             
             initializeElements() {
@@ -414,10 +422,19 @@
                     if (e.key === 'Enter') this.search();
                 });
                 
+                // Auto-decode on input
+                this.blueprintInput.addEventListener('input', () => {
+                    this.saveToStorage();
+                    if (this.blueprintInput.value.trim()) {
+                        this.decodeBlueprint();
+                    }
+                });
+                
                 // Add filter button event listeners
                 document.addEventListener('click', (e) => {
                     if (e.target.classList.contains('filter-btn')) {
                         this.toggleFilter(e.target.dataset.filter);
+                        this.saveToStorage();
                     }
                 });
             }
@@ -429,6 +446,10 @@
                         navigator.clipboard.readText().then(text => {
                             this.blueprintInput.value = text;
                             this.blueprintInput.focus();
+                            this.saveToStorage();
+                            if (text.trim()) {
+                                this.decodeBlueprint();
+                            }
                         }).catch(err => {
                             console.log('Could not read clipboard:', err);
                         });
@@ -465,6 +486,7 @@
                     
                     this.displayJson();
                     this.analyzeEntities();
+                    this.updateSectionVisibility();
                     this.showSuccess('Blueprint decoded successfully!');
                     
                 } catch (error) {
@@ -847,7 +869,7 @@
             getModuleData(entities) {
                 const moduleData = [];
                 entities.forEach(entity => {
-                    if (entity.items) {
+                    if (Array.isArray(entity.items)) {
                         entity.items.forEach(item => {
                             if (item.id && item.id.name) {
                                 moduleData.push({
@@ -1166,6 +1188,56 @@
                 
                 // Reset filter buttons
                 this.updateFilterButtons();
+                this.updateSectionVisibility();
+                this.saveToStorage();
+            }
+            
+            saveToStorage() {
+                try {
+                    localStorage.setItem('factorio-blueprint-editor-blueprint', this.blueprintInput.value);
+                    localStorage.setItem('factorio-blueprint-editor-filters', JSON.stringify(Array.from(this.activeFilters)));
+                } catch (e) {
+                    console.log('Could not save to localStorage:', e);
+                }
+            }
+            
+            loadFromStorage() {
+                try {
+                    // First restore the filters
+                    const savedFilters = localStorage.getItem('factorio-blueprint-editor-filters');
+                    if (savedFilters) {
+                        this.activeFilters = new Set(JSON.parse(savedFilters));
+                        this.updateFilterButtons();
+                    }
+                    
+                    // Then restore and decode the blueprint
+                    const savedBlueprint = localStorage.getItem('factorio-blueprint-editor-blueprint');
+                    if (savedBlueprint) {
+                        this.blueprintInput.value = savedBlueprint;
+                        // Immediately decode the restored blueprint with the correct filters
+                        if (savedBlueprint.trim()) {
+                            this.decodeBlueprint();
+                        }
+                    }
+                } catch (e) {
+                    console.log('Could not load from localStorage:', e);
+                }
+            }
+            
+            updateSectionVisibility() {
+                const hasBlueprint = this.blueprintData !== null;
+                const sections = ['entitiesSection', 'searchSection', 'exportSection', 'jsonSection'];
+                
+                sections.forEach(sectionId => {
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        if (hasBlueprint) {
+                            section.classList.remove('hidden');
+                        } else {
+                            section.classList.add('hidden');
+                        }
+                    }
+                });
             }
             
             showError(message) {
@@ -1650,6 +1722,18 @@
                 'plastic bar': 'Plastic_bar.png/32px-Plastic_bar.png',
                 'casting low density structure': 'Casting_low_density_structure.png/32px-Casting_low_density_structure.png',
                 'sulfur': 'Sulfur.png/32px-Sulfur.png',
+                'metallic asteroid reprocessing': 'Metallic_asteroid_reprocessing.png/32px-Metallic_asteroid_reprocessing.png',
+                'metallic asteroid crushing': 'Metallic_asteroid_crushing.png/32px-Metallic_asteroid_crushing.png',
+                'carbonic asteroid reprocessing': 'Carbonic_asteroid_reprocessing.png/32px-Carbonic_asteroid_reprocessing.png',
+                'carbonic asteroid crushing': 'Carbonic_asteroid_crushing.png/32px-Carbonic_asteroid_crushing.png',
+                'oxide asteroid reprocessing': 'Oxide_asteroid_reprocessing.png/32px-Oxide_asteroid_reprocessing.png',
+                'oxide asteroid crushing': 'Oxide_asteroid_crushing.png/32px-Oxide_asteroid_crushing.png',
+                'advanced oxide asteroid crushing': 'Advanced_oxide_asteroid_crushing.png/32px-Advanced_oxide_asteroid_crushing.png',
+                'advanced carbonic asteroid crushing': 'Advanced_carbonic_asteroid_crushing.png/32px-Advanced_carbonic_asteroid_crushing.png',
+                'advanced thruster fuel': 'Advanced_thruster_fuel.png/32px-Advanced_thruster_fuel.png',
+                'advanced thruster oxidizer': 'Advanced_thruster_oxidizer.png/32px-Advanced_thruster_oxidizer.png',
+                'straight rail': 'Straight_rail.png/32px-Straight_rail.png',
+                'curved rail': 'Curved_rail.png/32px-Curved_rail.png',
             };
             return 'https://wiki.factorio.com/images/thumb/' + FACTORIO_ITEMS_32px[itemName.replace(/-/g, ' ')];
         }
