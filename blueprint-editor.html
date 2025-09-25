@@ -238,7 +238,7 @@
         </div>
         
         <div class="section">
-            <h2>Entity Analysis</h2>
+            <h2>Entities</h2>
             <div id="entityAnalysis"></div>
         </div>
         
@@ -272,7 +272,7 @@
         </div>
         
         <div class="section">
-            <h2>Decoded JSON</h2>
+            <h2>JSON</h2>
             <div id="jsonDisplay" class="json-display">No blueprint decoded yet...</div>
             <div class="status" id="jsonStatus"></div>
         </div>
@@ -285,6 +285,7 @@
                 this.jsonString = '';
                 this.searchResults = [];
                 this.currentSearchIndex = 0;
+                this.replaceButtons = [];
                 
                 this.initializeElements();
                 this.bindEvents();
@@ -486,6 +487,9 @@
                 }
                 
                 try {
+                    // Apply any active replacements
+                    const hadReplacements = this.applyReplacements();
+                    
                     // Convert JSON to string
                     const jsonString = JSON.stringify(this.blueprintData);
                     
@@ -500,7 +504,11 @@
                     
                     // Copy to clipboard
                     await navigator.clipboard.writeText(blueprintString);
-                    this.showSuccess('Blueprint encoded and copied to clipboard!');
+                    
+                    const message = hadReplacements ? 
+                        'Blueprint with replacements applied and copied to clipboard!' : 
+                        'Blueprint encoded and copied to clipboard!';
+                    this.showSuccess(message);
                     
                 } catch (error) {
                     this.showError('Failed to encode blueprint: ' + error.message);
@@ -515,6 +523,9 @@
                 }
                 
                 try {
+                    // Apply any active replacements
+                    const hadReplacements = this.applyReplacements();
+                    
                     // Convert JSON to string
                     const jsonString = JSON.stringify(this.blueprintData);
                     
@@ -538,7 +549,10 @@
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     
-                    this.showSuccess('Blueprint downloaded!');
+                    const message = hadReplacements ? 
+                        'Blueprint with replacements applied and downloaded!' : 
+                        'Blueprint downloaded!';
+                    this.showSuccess(message);
                     
                 } catch (error) {
                     this.showError('Failed to download blueprint: ' + error.message);
@@ -576,9 +590,12 @@
                 const sortedEntities = Object.values(entityCounts)
                     .sort((a, b) => b.count - a.count);
                 
+                // Clear existing replace buttons
+                this.replaceButtons = [];
+                
                 // Generate table HTML
                 let tableHTML = '<table class="entity-table">';
-                tableHTML += '<thead><tr><th>Image</th><th>Entity Name</th><th>Quality</th><th>Count</th></tr></thead>';
+                tableHTML += '<thead><tr><th>Downgrade</th><th>Entity</th><th>Upgrade</th><th>Count</th></tr></thead>';
                 tableHTML += '<tbody>';
                 
                 sortedEntities.forEach(entity => {
@@ -588,6 +605,7 @@
                     
                     tableHTML += `
                         <tr>
+                            <td class="downgrade-column" style="text-align: right;"></td>
                             <td>
                                 <div class="entity-image-container">
                                     <img src="${imageUrl}" alt="${entity.name}" class="entity-image" onerror="this.style.display='none'">
@@ -596,8 +614,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="entity-name">${entity.name}</td>
-                            <td class="entity-quality">${qualityText}</td>
+                            <td class="upgrade-column"></td>
                             <td class="entity-count">${entity.count}</td>
                         </tr>
                     `;
@@ -612,6 +629,155 @@
                     <div class="success">Found ${totalEntities} entities of ${uniqueEntityTypes} different types (including quality variants)</div>
                     ${tableHTML}
                 `;
+                
+                // Create ReplaceButton instances for each row
+                const tableRows = this.entityAnalysis.querySelectorAll('tbody tr');
+                sortedEntities.forEach((entity, index) => {
+                    const row = tableRows[index];
+                    const fullEntityName = entity.quality === 'normal' ? entity.name : `${entity.quality} ${entity.name}`;
+                    const upgradePath = this.findUpgradePath(fullEntityName);
+                    const downgradeTargets = upgradePath ? this.getAllDowngradeTargets(fullEntityName, upgradePath) : [];
+                    const upgradeTargets = upgradePath ? this.getAllUpgradeTargets(fullEntityName, upgradePath) : [];
+                    
+                    const currentEntityName = entity.quality === 'normal' ? entity.name : `${entity.quality} ${entity.name}`;
+                    
+                    // Create downgrade buttons
+                    const downgradeColumn = row.querySelector('.downgrade-column');
+                    downgradeTargets.forEach(target => {
+                        const replaceButton = new ReplaceButton(this, currentEntityName, target, row);
+                        replaceButton.render(downgradeColumn);
+                        this.replaceButtons.push(replaceButton);
+                    });
+                    
+                    // Create upgrade buttons
+                    const upgradeColumn = row.querySelector('.upgrade-column');
+                    upgradeTargets.forEach(target => {
+                        const replaceButton = new ReplaceButton(this, currentEntityName, target, row);
+                        replaceButton.render(upgradeColumn);
+                        this.replaceButtons.push(replaceButton);
+                    });
+                });
+            }
+            
+            findUpgradePath(entityName) {
+                // Only look for exact match (including quality)
+                return upgrade_paths.find(path => path.includes(entityName));
+            }
+            
+            getBaseEntityName(entityName) {
+                // Remove quality prefix if present
+                const parts = entityName.split(' ');
+                if (parts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(parts[0])) {
+                    return parts.slice(1).join(' ');
+                }
+                return entityName;
+            }
+            
+            getAllDowngradeTargets(entityName, upgradePath) {
+                const currentIndex = upgradePath.indexOf(entityName);
+                
+                // Only proceed if exact match is found
+                if (currentIndex === -1) {
+                    return [];
+                }
+                
+                return currentIndex > 0 ? upgradePath.slice(0, currentIndex) : [];
+            }
+            
+            getAllUpgradeTargets(entityName, upgradePath) {
+                const currentIndex = upgradePath.indexOf(entityName);
+                
+                // Only proceed if exact match is found
+                if (currentIndex === -1) {
+                    return [];
+                }
+                
+                return currentIndex < upgradePath.length - 1 ? upgradePath.slice(currentIndex + 1) : [];
+            }
+            
+            
+            applyReplacements() {
+                const replacements = this.replaceButtons
+                    .map(button => button.getReplacement())
+                    .filter(replacement => replacement !== null);
+                
+                if (replacements.length === 0) {
+                    return false; // No replacements to apply
+                }
+                
+                if (!this.blueprintData || !this.blueprintData.blueprint || !this.blueprintData.blueprint.entities) {
+                    return false;
+                }
+                
+                let modified = false;
+                const entities = this.blueprintData.blueprint.entities;
+                
+                // Process each replacement
+                replacements.forEach(replacement => {
+                    const { from, to } = replacement;
+                    
+                    // Parse the target entity to extract quality and base name
+                    const targetParts = to.split(' ');
+                    let targetQuality = 'normal';
+                    let targetBaseName = to;
+                    
+                    if (targetParts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(targetParts[0])) {
+                        targetQuality = targetParts[0];
+                        targetBaseName = targetParts.slice(1).join(' ');
+                    }
+                    
+                    // Find and replace entities
+                    entities.forEach(entity => {
+                        if (entity.edited) return; // Skip already edited entities
+                        
+                        const entityName = entity.name;
+                        const entityQuality = entity.quality || 'normal';
+                        const fullEntityName = entityQuality === 'normal' ? entityName : `${entityQuality} ${entityName}`;
+                        
+                        if (fullEntityName === from) {
+                            entity.name = targetBaseName;
+                            entity.quality = targetQuality;
+                            entity.edited = true; // Mark as edited to prevent double replacement
+                            modified = true;
+                        }
+                    });
+                });
+                
+                if (modified) {
+                    // Clean up the edited markers
+                    entities.forEach(entity => {
+                        delete entity.edited;
+                    });
+                    
+                    // Update the JSON string and refresh display
+                    this.jsonString = JSON.stringify(this.blueprintData, null, 2);
+                    this.displayJson();
+                    this.analyzeEntities();
+                }
+                
+                return modified;
+            }
+            
+            replaceEntity(from, to) {
+                if (!this.jsonString) {
+                    this.showError('No blueprint data available');
+                    return;
+                }
+                
+                // Replace all instances of the entity
+                const regex = new RegExp(`"name":\\s*"${from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g');
+                const matches = [...this.jsonString.matchAll(regex)];
+                
+                if (matches.length === 0) {
+                    this.showError(`No instances of "${from}" found to replace`);
+                    return;
+                }
+                
+                this.jsonString = this.jsonString.replace(regex, `"name": "${to}"`);
+                this.blueprintData = JSON.parse(this.jsonString);
+                this.displayJson();
+                this.analyzeEntities();
+                this.showSuccess(`Replaced ${matches.length} instance${matches.length === 1 ? '' : 's'} of "${from}" with "${to}"`);
             }
             
             clearAll() {
@@ -642,11 +808,135 @@
             }
         }
         
+        class ReplaceButton {
+            constructor(area, from, to, rowElement) {
+                this.area = area;
+                this.from = from;
+                this.to = to;
+                this.rowElement = rowElement;
+                this.isActive = false;
+                this.buttonElement = null;
+            }
+            
+            render(target) {
+                this.buttonElement = document.createElement('button');
+                this.buttonElement.className = 'replace-button';
+                this.buttonElement.style.cssText = 'font-size: 12px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px; margin: 2px;';
+                
+                // Parse target name to extract quality and base name
+                const targetParts = this.to.split(' ');
+                let targetQuality = 'normal';
+                let targetBaseName = this.to;
+                
+                if (targetParts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(targetParts[0])) {
+                    targetQuality = targetParts[0];
+                    targetBaseName = targetParts.slice(1).join(' ');
+                }
+                
+                const targetImageUrl = toImageUrl(targetBaseName);
+                const targetQualityText = targetQuality.charAt(0).toUpperCase() + targetQuality.slice(1);
+                const targetQualityImageUrl = targetQuality === 'normal' ? '' : qualityToImage(targetQuality);
+                
+                this.buttonElement.innerHTML = `
+                    <div style="position: relative; width: 32px; height: 32px;">
+                        <img src="${targetImageUrl}" alt="${targetBaseName}" style="width: 32px; height: 32px;" onerror="this.style.display='none'">
+                        ${targetQualityImageUrl ? `<img src="${targetQualityImageUrl}" alt="${targetQualityText}" style="position: absolute; bottom: 0; left: 0; width: 12.8px; height: 12.8px;" onerror="this.style.display='none'">` : ''}
+                    </div>
+                `;
+                
+                this.buttonElement.addEventListener('click', () => {
+                    this.toggleActive();
+                });
+                
+                target.appendChild(this.buttonElement);
+            }
+            
+            toggleActive() {
+                // Deactivate all other buttons in the same row
+                if (this.rowElement) {
+                    const allButtons = this.rowElement.querySelectorAll('.replace-button');
+                    allButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.style.backgroundColor = '';
+                    });
+                }
+                
+                // Toggle this button's active state
+                this.isActive = !this.isActive;
+                if (this.buttonElement) {
+                    if (this.isActive) {
+                        this.buttonElement.classList.add('active');
+                        this.buttonElement.style.backgroundColor = 'orange';
+                    } else {
+                        this.buttonElement.classList.remove('active');
+                        this.buttonElement.style.backgroundColor = '';
+                    }
+                }
+            }
+            
+            getReplacement() {
+                return this.isActive ? { from: this.from, to: this.to } : null;
+            }
+        }
+
         // Initialize the editor when the page loads
+        let blueprintEditor;
         document.addEventListener('DOMContentLoaded', () => {
-            new BlueprintEditor();
+            blueprintEditor = new BlueprintEditor();
         });
 
+
+        const upgrade_paths = [
+            [ 'transport-belt', 'fast-transport-belt', 'express-transport-belt', 'turbo-transport-belt' ],
+            [ 'underground-belt', 'fast-underground-belt', 'express-underground-belt', 'turbo-underground-belt' ],
+            [ 'splitter', 'fast-splitter', 'express-splitter', 'turbo-splitter' ],
+
+            [ 'burner-inserter', 'inserter', 'fast-inserter', 'bulk-inserter', 'uncommon bulk-inserter', 'rare bulk-inserter', 'epic bulk-inserter', 'legendary bulk-inserter', 'stack-inserter', 'uncommon stack-inserter', 'rare stack-inserter', 'epic stack-inserter', 'legendary stack-inserter' ],
+            [ 'long-handed-inserter', 'uncommon long-handed-inserter', 'rare long-handed-inserter', 'epic long-handed-inserter', 'legendary long-handed-inserter' ],
+            [ 'pump', 'uncommon pump', 'rare pump', 'epic pump', 'legendary pump' ],
+
+            [ 'wooden-chest', 'iron-chest', 'steel-chest', 'uncommon steel-chest', 'rare steel-chest', 'epic steel-chest', 'legendary steel-chest' ],
+            [ 'small-electric-pole', 'medium-electric-pole', 'uncommon medium-electric-pole', 'rare medium-electric-pole', 'epic medium-electric-pole', 'legendary medium-electric-pole' ],
+            [ 'big-electric-pole', 'uncommon big-electric-pole', 'rare big-electric-pole', 'epic big-electric-pole', 'legendary big-electric-pole' ],
+            [ 'substation', 'uncommon substation', 'rare substation', 'epic substation', 'legendary substation' ],
+            [ 'roboport', 'uncommon roboport', 'rare roboport', 'epic roboport', 'legendary roboport' ],
+            [ 'beacon', 'uncommon beacon', 'rare beacon', 'epic beacon', 'legendary beacon' ],
+
+            [ 'artillery-wagon', 'uncommon artillery-wagon', 'rare artillery-wagon', 'epic artillery-wagon', 'legendary artillery-wagon' ],
+            [ 'car', 'tank', 'uncommon tank', 'rare tank', 'epic tank', 'legendary tank' ],
+            [ 'spidertron', 'uncommon spidertron', 'rare spidertron', 'epic spidertron', 'legendary spidertron' ],
+            [ 'logistic-robot', 'uncommon logistic-robot', 'rare logistic-robot', 'epic logistic-robot', 'legendary logistic-robot' ],
+            [ 'construction-robot', 'uncommon construction-robot', 'rare construction-robot', 'epic construction-robot', 'legendary construction-robot' ],
+            // logistic chests are missing
+            [ 'assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3', 'uncommon assembling-machine-3', 'rare assembling-machine-3', 'epic assembling-machine-3', 'legendary assembling-machine-3' ],
+            [ 'solar-panel', 'uncommon solar-panel', 'rare solar-panel', 'epic solar-panel', 'legendary solar-panel' ],
+
+            [ 'crusher', 'uncommon crusher', 'rare crusher', 'epic crusher', 'legendary crusher' ],
+            [ 'asteroid-collector', 'uncommon asteroid-collector', 'rare asteroid-collector', 'epic asteroid-collector', 'legendary asteroid-collector' ],
+            [ 'thruster', 'uncommon thruster', 'rare thruster', 'epic thruster', 'legendary thruster' ],
+            [ 'cargo-bay', 'uncommon cargo-bay', 'rare cargo-bay', 'epic cargo-bay', 'legendary cargo-bay' ],
+
+            [ 'stone-furnace', 'steel-furnace', 'uncommon steel-furnace', 'rare steel-furnace', 'epic steel-furnace', 'legendary steel-furnace' ],
+            [ 'electric-furnace', 'uncommon electric-furnace', 'rare electric-furnace', 'epic electric-furnace', 'legendary electric-furnace' ],
+            [ 'oil-refinery', 'uncommon oil-refinery', 'rare oil-refinery', 'epic oil-refinery', 'legendary oil-refinery' ],
+            [ 'chemical-plant', 'uncommon chemical-plant', 'rare chemical-plant', 'epic chemical-plant', 'legendary chemical-plant' ],
+            [ 'electromagnetic-plant', 'uncommon electromagnetic-plant', 'rare electromagnetic-plant', 'epic electromagnetic-plant', 'legendary electromagnetic-plant' ],
+            [ 'foundry', 'uncommon foundry', 'rare foundry', 'epic foundry', 'legendary foundry' ],
+            [ 'cryogenic-plant', 'uncommon cryogenic-plant', 'rare cryogenic-plant', 'epic cryogenic-plant', 'legendary cryogenic-plant' ],
+            [ 'lab', 'uncommon lab', 'rare lab', 'epic lab', 'legendary lab' ],
+            [ 'biolab', 'uncommon biolab', 'rare biolab', 'epic biolab', 'legendary biolab' ],
+
+            [ 'gun-turret', 'uncommon gun-turret', 'rare gun-turret', 'epic gun-turret', 'legendary gun-turret' ],
+            [ 'laser-turret', 'uncommon laser-turret', 'rare laser-turret', 'epic laser-turret', 'legendary laser-turret' ],
+            [ 'flamethrower-turret', 'uncommon flamethrower-turret', 'rare flamethrower-turret', 'epic flamethrower-turret', 'legendary flamethrower-turret' ],
+            [ 'artillery-turret', 'uncommon artillery-turret', 'rare artillery-turret', 'epic artillery-turret', 'legendary artillery-turret' ],
+            [ 'rocket-turret', 'uncommon rocket-turret', 'rare rocket-turret', 'epic rocket-turret', 'legendary rocket-turret' ],
+            [ 'tesla-turret', 'uncommon tesla-turret', 'rare tesla-turret', 'epic tesla-turret', 'legendary tesla-turret' ],
+            [ 'railgun-turret', 'uncommon railgun-turret', 'rare railgun-turret', 'epic railgun-turret', 'legendary railgun-turret' ],
+            [ 'land-mine', 'uncommon land-mine', 'rare land-mine', 'epic land-mine', 'legendary land-mine' ],
+            [ 'radar', 'uncommon radar', 'rare radar', 'epic radar', 'legendary radar' ],
+            [ 'stone-wall', 'uncommon stone-wall', 'rare stone-wall', 'epic stone-wall', 'legendary stone-wall' ],
+        ];
 
         function qualityToImage(quality) {
             return `https://wiki.factorio.com/images/Quality_${quality}.png`;
