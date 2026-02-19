@@ -56,16 +56,17 @@
         }
         
         .json-display {
+            width: 100%;
+            min-height: 400px;
             background-color: #1e1e1e;
             border: 1px solid #3e3e42;
             border-radius: 4px;
             padding: 15px;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             font-size: 13px;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            color: #d4d4d4;
+            resize: vertical;
+            box-sizing: border-box;
         }
         
         .search-replace-container {
@@ -431,7 +432,10 @@
         
         <div class="section hidden" id="jsonSection">
             <h2>JSON</h2>
-            <div id="jsonDisplay" class="json-display">No blueprint decoded yet...</div>
+            <textarea id="jsonDisplay" class="json-display" placeholder="No blueprint decoded yet..."></textarea>
+            <div class="button-group" style="margin-top: 10px;">
+                <button id="saveJsonBtn">Save</button>
+            </div>
             <div class="status" id="jsonStatus"></div>
         </div>
         
@@ -624,10 +628,12 @@
                 this.replaceAllBtn = document.getElementById('replaceAllBtn');
                 this.encodeBtn = document.getElementById('encodeBtn');
                 this.downloadBtn = document.getElementById('downloadBtn');
+                this.saveJsonBtn = document.getElementById('saveJsonBtn');
             }
             
             bindEvents() {
                 this.decodeBtn.addEventListener('click', () => this.decodeBlueprint());
+                this.saveJsonBtn.addEventListener('click', () => this.saveJson());
                 this.clearBtn.addEventListener('click', () => this.clearAll());
                 this.searchBtn.addEventListener('click', () => this.search());
                 this.replaceBtn.addEventListener('click', () => this.replace());
@@ -713,8 +719,25 @@
             }
             
             displayJson() {
-                this.jsonDisplay.textContent = this.jsonString;
+                this.jsonDisplay.value = this.jsonString;
                 this.jsonStatus.textContent = `JSON size: ${this.jsonString.length} characters`;
+            }
+            
+            saveJson() {
+                const raw = this.jsonDisplay.value.trim();
+                if (!raw) {
+                    this.showError('No JSON to save');
+                    return;
+                }
+                try {
+                    this.blueprintData = JSON.parse(raw);
+                    this.jsonString = JSON.stringify(this.blueprintData, null, 2);
+                    this.displayJson();
+                    this.analyzeEntities();
+                    this.showSuccess('JSON saved');
+                } catch (e) {
+                    this.showError('Invalid JSON: ' + e.message);
+                }
             }
             
             search() {
@@ -747,16 +770,8 @@
             }
             
             highlightMatch(match) {
-                const start = match.index;
-                const end = start + match[0].length;
-                const before = this.jsonString.substring(0, start);
-                const highlighted = this.jsonString.substring(start, end);
-                const after = this.jsonString.substring(end);
-                
-                this.jsonDisplay.innerHTML = 
-                    this.escapeHtml(before) + 
-                    `<span class="highlight">${this.escapeHtml(highlighted)}</span>` + 
-                    this.escapeHtml(after);
+                this.jsonDisplay.setSelectionRange(match.index, match.index + match[0].length);
+                this.jsonDisplay.focus();
             }
             
             replace() {
@@ -1392,7 +1407,7 @@
             
             clearAll() {
                 this.blueprintInput.value = '';
-                this.jsonDisplay.textContent = 'No blueprint decoded yet...';
+                this.jsonDisplay.value = '';
                 this.jsonStatus.textContent = '';
                 this.searchInput.value = '';
                 this.replaceInput.value = '';
