@@ -804,11 +804,13 @@ for (const t of todo) {
     }
     conditions.push(stop_condition(t.name, t.stop_count), enable_condition(t.name, 1))
     for(let name in needed_checks) {
-        conditions.push(check_condition(name))
+        if(signal_order.indexOf(name) > signal_order.indexOf(t.name) || signal_order.indexOf(name) == -1)
+            conditions.push(check_condition(name))
     }
     conditions.push(start_condition(t.name, t.start_count), enable_condition(t.name))
     for(let name in needed_checks) {
-        conditions.push(check_condition(name))
+        if(signal_order.indexOf(name) > signal_order.indexOf(t.name) || signal_order.indexOf(name) == -1)
+            conditions.push(check_condition(name))
     }
     needed_checks[t.name] = t.start_count
 }
