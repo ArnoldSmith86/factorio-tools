@@ -31,6 +31,10 @@
                     <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Buffer_chest.png/32px-Buffer_chest.png" alt="">
                     <span class="tab-text"><span class="tab-title">Automall</span><span class="tab-desc">Automall combinator helper</span></span>
                 </button>
+                <button class="tab-link" data-tab="platform-image" type="button">
+                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Space_platform_foundation.png/32px-Space_platform_foundation.png" alt="">
+                    <span class="tab-text"><span class="tab-title">Platform Image</span><span class="tab-desc">Image → space platform</span></span>
+                </button>
                 <button class="tab-link" data-tab="links" type="button">
                     <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Rocket_silo.png/32px-Rocket_silo.png" alt="">
                     <span class="tab-text"><span class="tab-title">Links</span><span class="tab-desc">Handy Factorio resources</span></span>
@@ -42,6 +46,9 @@
             <div class="tab-panels">
                 <div class="tab-panel active" data-tab="blueprint-upgrader">
                     <!-- @INCLUDE "contents/blueprint-upgrader/blueprint-editor.html" -->
+                </div>
+                <div class="tab-panel" data-tab="platform-image">
+                    <!-- @INCLUDE "contents/platform-image/platform-image.html" -->
                 </div>
                 <div class="tab-panel" data-tab="module-table">
                     <!-- @INCLUDE "contents/module-table/module-overview.html" -->
@@ -83,6 +90,8 @@
         // @INCLUDE "contents/blueprint-upgrader/upgrade-paths.js"
         // @INCLUDE "common/images.js"
         // @INCLUDE "common/tabs.js"
+
+        // @INCLUDE "contents/platform-image/platform-image.js"
 
         // @INCLUDE "contents/automall/signal-order.js"
         // @INCLUDE "contents/automall/todo.js"

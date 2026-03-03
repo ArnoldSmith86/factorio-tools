@@ -1,0 +1,59 @@
+<div id="platformImageTool" class="platform-image-tool">
+    <section class="card">
+        <h2>Image to Space Platform</h2>
+        <p>
+            Select an image (SVG/PNG/JPG/WebP), choose a scale, and generate a
+            blueprint that places a <code>space-platform-foundation</code> on each light pixel.
+        </p>
+
+        <div class="platform-image-grid">
+            <div class="platform-image-controls">
+                <label>
+                    Image file
+                    <input id="platformImageInput" type="file" accept="image/*">
+                </label>
+
+                <label>
+                    Scale (tiles per pixel)
+                    <input id="platformScaleInput" type="number" min="0.01" step="0.01" value="0.25">
+                </label>
+
+                <label>
+                    Threshold (0 = dark, 1 = bright)
+                    <input id="platformThresholdInput" type="number" min="0" max="1" step="0.05" value="0.5">
+                </label>
+
+                <p class="platform-image-note">
+                    The image is automatically resized so the longer side is at most 256&nbsp;pixels
+                    to keep blueprint sizes reasonable.
+                </p>
+
+                <button id="platformGenerateBtn" type="button" class="primary-btn">
+                    Generate blueprint
+                </button>
+            </div>
+
+            <div class="platform-image-preview">
+                <label>Preview (processed resolution)</label>
+                <canvas id="platformPreviewCanvas" width="0" height="0"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Generated blueprint</h2>
+        <div id="platformStatus" class="status"></div>
+        <textarea
+            id="platformBlueprintOutput"
+            rows="6"
+            spellcheck="false"
+            placeholder="Generated blueprint string will appear here..."
+        ></textarea>
+        <div class="button-row">
+            <button id="platformCopyBtn" type="button" class="primary-btn">
+                Copy to clipboard
+            </button>
+        </div>
+    </section>
+</div>
+
