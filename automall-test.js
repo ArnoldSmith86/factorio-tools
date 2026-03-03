@@ -817,4 +817,28 @@ for (const t of todo) {
 
 b.blueprint.entities[5].control_behavior.decider_conditions.conditions = conditions
 b.blueprint.entities[6].control_behavior.sections.sections[0].filters = filters
+descLines = todo.map(t => `[item=${t.name}] ${t.start_count} - ${t.stop_count}`)
+desc = descLines.join("\n")
+if (desc.length > 500) {
+    const ellipsisLen = (n) => ("\n[ ... " + n + " more " + (n === 1 ? "entry" : "entries") + " ... ]\n").length
+    const maxContent = 500 - ellipsisLen(99)
+    let startIdx = 0, startLen = 0
+    while (startIdx < descLines.length) {
+        const add = (startIdx ? 1 : 0) + descLines[startIdx].length
+        if (startLen + add > maxContent / 2) break
+        startLen += add
+        startIdx++
+    }
+    let endIdx = descLines.length, endLen = 0
+    while (endIdx > startIdx) {
+        const add = (endLen ? 1 : 0) + descLines[endIdx - 1].length
+        if (startLen + endLen + add + ellipsisLen(endIdx - startIdx) > 500) break
+        endLen += add
+        endIdx--
+    }
+    const omitted = endIdx - startIdx
+    const ellipsis = "\n[ ... " + omitted + " more " + (omitted === 1 ? "entry" : "entries") + " ... ]\n"
+    desc = descLines.slice(0, startIdx).join("\n") + ellipsis + descLines.slice(endIdx).join("\n")
+}
+b.blueprint.entities[5].player_description = desc
 blueprintEditor.blueprintData = b
