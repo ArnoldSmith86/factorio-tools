@@ -1,0 +1,74 @@
+<div class="section">
+    <h2>Blueprint String Input</h2>
+    <textarea id="blueprintInput" placeholder="Paste your Factorio blueprint string here..."></textarea>
+    <div class="button-group">
+        <button id="decodeBtn">Decode Blueprint</button>
+        <button id="clearBtn">Clear All</button>
+    </div>
+</div>
+
+<div class="section hidden" id="entitiesSection">
+    <h2>Downgrade / Upgrade</h2>
+    <div class="filter-buttons">
+        <button class="filter-btn" data-filter="all">All</button>
+        <button class="filter-btn active" data-filter="entities">
+            <img src="https://wiki.factorio.com/images/thumb/Transport_belt.png/32px-Transport_belt.png" alt="Entities" class="filter-btn-icon" onerror="this.style.display='none'">
+            Entities
+        </button>
+        <button class="filter-btn" data-filter="modules">
+            <img src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="Modules" class="filter-btn-icon" onerror="this.style.display='none'">
+            Modules
+        </button>
+        <button class="filter-btn" data-filter="recipes">
+            <img src="https://wiki.factorio.com/images/thumb/Assembling_machine_1.png/32px-Assembling_machine_1.png" alt="Recipes" class="filter-btn-icon" onerror="this.style.display='none'">
+            Recipes
+        </button>
+        <button class="filter-btn" data-filter="conditions">
+            <img src="https://wiki.factorio.com/images/thumb/Decider_combinator.png/32px-Decider_combinator.png" alt="Conditions" class="filter-btn-icon" onerror="this.style.display='none'">
+            Circuit Conditions
+        </button>
+        <button class="filter-btn" data-filter="requests">
+            <img src="https://wiki.factorio.com/images/thumb/Storage_chest.png/32px-Storage_chest.png" alt="Requests" class="filter-btn-icon" onerror="this.style.display='none'">
+            Logistic Requests
+        </button>
+    </div>
+    <div id="entityAnalysis"></div>
+</div>
+
+<div class="section hidden" id="searchSection">
+    <h2>Search & Replace</h2>
+    <div class="search-replace-container">
+        <div class="search-box">
+            <label for="searchInput">Search:</label>
+            <input type="text" id="searchInput" placeholder="Enter text to search for...">
+        </div>
+        <div class="replace-box">
+            <label for="replaceInput">Replace with:</label>
+            <input type="text" id="replaceInput" placeholder="Enter replacement text...">
+        </div>
+    </div>
+    <div class="button-group">
+        <button id="searchBtn">Search</button>
+        <button id="replaceBtn">Replace</button>
+        <button id="replaceAllBtn">Replace All</button>
+    </div>
+    <div id="searchResults"></div>
+</div>
+
+<div class="section hidden" id="exportSection">
+    <h2>Export</h2>
+    <div class="button-group">
+        <button id="encodeBtn">Encode & Copy to Clipboard</button>
+        <button id="downloadBtn">Download Blueprint</button>
+    </div>
+    <div id="exportStatus"></div>
+</div>
+
+<div class="section hidden" id="jsonSection">
+    <h2>JSON</h2>
+    <textarea id="jsonDisplay" class="json-display" placeholder="No blueprint decoded yet..."></textarea>
+    <div class="button-group" style="margin-top: 10px;">
+        <button id="saveJsonBtn">Save</button>
+    </div>
+    <div class="status" id="jsonStatus"></div>
+</div>

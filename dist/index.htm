@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png">
+    <title>Factorio Blueprint Lab</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #569cd6;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 42px;
+        }
+        
+        .section {
+            background-color: #2d2d30;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #3e3e42;
+        }
+        
+        .section h2 {
+            color: #4ec9b0;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        
+        .json-display {
+            width: 100%;
+            min-height: 400px;
+            background-color: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            color: #d4d4d4;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        
+        .search-replace-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .search-box, .replace-box {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .search-box label, .replace-box label {
+            color: #9cdcfe;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"] {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #1177bb;
+        }
+        
+        button:disabled {
+            background-color: #3e3e42;
+            cursor: not-allowed;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .error {
+            color: #f44747;
+            background-color: #2d1b1b;
+            border: 1px solid #5c1a1a;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #4ec9b0;
+            background-color: #1b2d1b;
+            border: 1px solid #1a5c1a;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #858585;
+        }
+        
+        .highlight {
+            background-color: #ffff00;
+            color: #000000;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .entity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .entity-table th,
+        .entity-table td {
+            border: 1px solid #3e3e42;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .entity-table th {
+            background-color: #2d2d30;
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        
+        .entity-table tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+        
+        .entity-table tr:hover {
+            background-color: #3a3a3a;
+        }
+        
+        .entity-image-container {
+            position: relative;
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            vertical-align: middle;
+        }
+        
+        .entity-image {
+            width: 32px;
+            height: 32px;
+            vertical-align: middle;
+        }
+        
+        .quality-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40%;
+            height: 40%;
+            font-size: 0;
+        }
+        
+        .quality-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .entity-count {
+            font-weight: bold;
+            color: #569cd6;
+        }
+        
+        .entity-name {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            color: #d4d4d4;
+        }
+        
+        .entity-quality {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            color: #ce9178;
+            font-weight: bold;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background-color: #2d2d30;
+            color: #d4d4d4;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background-color: #3e3e42;
+        }
+        
+        .filter-btn.active {
+            background-color: #0e639c;
+            color: white;
+            border-color: #0e639c;
+        }
+        
+        .filter-btn-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: auto;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            text-align: center;
+            border-radius: 4px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -50%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            white-space: nowrap;
+            border: 1px solid #3e3e42;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .section.hidden {
+            display: none;
+        }
+        
+        .module-overview {
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .module-overview h3 {
+            color: #4ec9b0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .module-overview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .module-overview-table th {
+            background-color: #2d2d30;
+            color: #4ec9b0;
+            font-weight: bold;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #3e3e42;
+        }
+        
+        .module-overview-table td {
+            border: 1px solid #3e3e42;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .module-overview-table tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+        
+        .module-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-left: -120px;
+        }
+        
+        .module-cell.tier-2 {
+            padding-left: 120px;
+        }
+        
+        .module-cell.tier-3 {
+            padding-left: 240px;
+        }
+        
+        .module-cell.quality-tier {
+            padding-left: 0px;
+        }
+        
+        .module-bonus {
+            font-size: 12px;
+            color: #ce9178;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><img src="https://wiki.factorio.com/favicon.ico" style="height:32px"><img src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png"><img src="https://wiki.factorio.com/images/thumb/Lab.png/32px-Lab.png"> Factorio Blueprint Lab</h1>
+        
+<div class="section">
+    <h2>Blueprint String Input</h2>
+    <textarea id="blueprintInput" placeholder="Paste your Factorio blueprint string here..."></textarea>
+    <div class="button-group">
+        <button id="decodeBtn">Decode Blueprint</button>
+        <button id="clearBtn">Clear All</button>
+    </div>
+</div>
+
+<div class="section hidden" id="entitiesSection">
+    <h2>Downgrade / Upgrade</h2>
+    <div class="filter-buttons">
+        <button class="filter-btn" data-filter="all">All</button>
+        <button class="filter-btn active" data-filter="entities">
+            <img src="https://wiki.factorio.com/images/thumb/Transport_belt.png/32px-Transport_belt.png" alt="Entities" class="filter-btn-icon" onerror="this.style.display='none'">
+            Entities
+        </button>
+        <button class="filter-btn" data-filter="modules">
+            <img src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="Modules" class="filter-btn-icon" onerror="this.style.display='none'">
+            Modules
+        </button>
+        <button class="filter-btn" data-filter="recipes">
+            <img src="https://wiki.factorio.com/images/thumb/Assembling_machine_1.png/32px-Assembling_machine_1.png" alt="Recipes" class="filter-btn-icon" onerror="this.style.display='none'">
+            Recipes
+        </button>
+        <button class="filter-btn" data-filter="conditions">
+            <img src="https://wiki.factorio.com/images/thumb/Decider_combinator.png/32px-Decider_combinator.png" alt="Conditions" class="filter-btn-icon" onerror="this.style.display='none'">
+            Circuit Conditions
+        </button>
+        <button class="filter-btn" data-filter="requests">
+            <img src="https://wiki.factorio.com/images/thumb/Storage_chest.png/32px-Storage_chest.png" alt="Requests" class="filter-btn-icon" onerror="this.style.display='none'">
+            Logistic Requests
+        </button>
+    </div>
+    <div id="entityAnalysis"></div>
+</div>
+
+<div class="section hidden" id="searchSection">
+    <h2>Search & Replace</h2>
+    <div class="search-replace-container">
+        <div class="search-box">
+            <label for="searchInput">Search:</label>
+            <input type="text" id="searchInput" placeholder="Enter text to search for...">
+        </div>
+        <div class="replace-box">
+            <label for="replaceInput">Replace with:</label>
+            <input type="text" id="replaceInput" placeholder="Enter replacement text...">
+        </div>
+    </div>
+    <div class="button-group">
+        <button id="searchBtn">Search</button>
+        <button id="replaceBtn">Replace</button>
+        <button id="replaceAllBtn">Replace All</button>
+    </div>
+    <div id="searchResults"></div>
+</div>
+
+<div class="section hidden" id="exportSection">
+    <h2>Export</h2>
+    <div class="button-group">
+        <button id="encodeBtn">Encode & Copy to Clipboard</button>
+        <button id="downloadBtn">Download Blueprint</button>
+    </div>
+    <div id="exportStatus"></div>
+</div>
+
+<div class="section hidden" id="jsonSection">
+    <h2>JSON</h2>
+    <textarea id="jsonDisplay" class="json-display" placeholder="No blueprint decoded yet..."></textarea>
+    <div class="button-group" style="margin-top: 10px;">
+        <button id="saveJsonBtn">Save</button>
+    </div>
+    <div class="status" id="jsonStatus"></div>
+</div>
+<div class="module-overview">
+    <h3>Module Overview</h3>
+    <table class="module-overview-table">
+        <thead>
+            <tr>
+                <th>Productivity</th>
+                <th>Speed</th>
+                <th>Quality</th>
+                <th>Efficiency</th>
+            </tr>
+        </thead>
+        <tbody id="moduleTableBody">
+        </tbody>
+    </table>
+</div>
+    </div>
+
+    <script>
+// Module data - easy to reorder and maintain
+const moduleData = {
+    "Productivity": [
+        { tier: 1, quality: 'normal', bonus: 4 },
+        { tier: 1, quality: 'uncommon', bonus: 5 },
+        { tier: 2, quality: 'normal', bonus: 6 },
+        { tier: 1, quality: 'rare', bonus: 6 },
+        { tier: 2, quality: 'uncommon', bonus: 7 },
+        { tier: 1, quality: 'epic', bonus: 7 },
+        { tier: 2, quality: 'rare', bonus: 9 },
+        { tier: 3, quality: 'normal', bonus: 10 },
+        { tier: 1, quality: 'legendary', bonus: 10 },
+        { tier: 2, quality: 'epic', bonus: 11 },
+        { tier: 3, quality: 'uncommon', bonus: 13 },
+        { tier: 2, quality: 'legendary', bonus: 15 },
+        { tier: 3, quality: 'rare', bonus: 16 },
+        { tier: 3, quality: 'epic', bonus: 19 },
+        { tier: 3, quality: 'legendary', bonus: 25 },
+    ],
+    "Speed": [
+        { tier: 1, quality: 'normal', bonus: 20 },
+        { tier: 1, quality: 'uncommon', bonus: 26 },
+        { tier: 2, quality: 'normal', bonus: 30 },
+        { tier: 1, quality: 'rare', bonus: 32 },
+        { tier: 1, quality: 'epic', bonus: 38 },
+        { tier: 2, quality: 'uncommon', bonus: 39 },
+        { tier: 2, quality: 'rare', bonus: 48 },
+        { tier: 3, quality: 'normal', bonus: 50 },
+        { tier: 1, quality: 'legendary', bonus: 50 },
+        { tier: 2, quality: 'epic', bonus: 57 },
+        { tier: 3, quality: 'uncommon', bonus: 65 },
+        { tier: 2, quality: 'legendary', bonus: 75 },
+        { tier: 3, quality: 'rare', bonus: 80 },
+        { tier: 3, quality: 'epic', bonus: 95 },
+        { tier: 3, quality: 'legendary', bonus: 125 },
+    ],
+    "Quality": [
+        { tier: 1, quality: 'normal', bonus: 1 },
+        { tier: 1, quality: 'uncommon', bonus: 1.3 },
+        { tier: 1, quality: 'rare', bonus: 1.6 },
+        { tier: 1, quality: 'epic', bonus: 1.9 },
+        { tier: 2, quality: 'normal', bonus: 2 },
+        { tier: 3, quality: 'normal', bonus: 2.5 },
+        { tier: 1, quality: 'legendary', bonus: 2.5 },
+        { tier: 2, quality: 'uncommon', bonus: 2.6 },
+        { tier: 3, quality: 'uncommon', bonus: 3.2 },
+        { tier: 2, quality: 'rare', bonus: 3.2 },
+        { tier: 2, quality: 'epic', bonus: 3.8 },
+        { tier: 3, quality: 'rare', bonus: 4 },
+        { tier: 3, quality: 'epic', bonus: 4.7 },
+        { tier: 2, quality: 'legendary', bonus: 5 },
+        { tier: 3, quality: 'legendary', bonus: 6.2 },
+    ],
+    "Efficiency": [
+        { tier: 1, quality: 'normal', bonus: -30 },
+        { tier: 1, quality: 'uncommon', bonus: -39 },
+        { tier: 2, quality: 'normal', bonus: -40 },
+        { tier: 1, quality: 'rare', bonus: -48 },
+        { tier: 3, quality: 'normal', bonus: -50 },
+        { tier: 2, quality: 'uncommon', bonus: -52 },
+        { tier: 1, quality: 'epic', bonus: -57 },
+        { tier: 2, quality: 'rare', bonus: -64 },
+        { tier: 3, quality: 'uncommon', bonus: -65 },
+        { tier: 1, quality: 'legendary', bonus: -75 },
+        { tier: 2, quality: 'epic', bonus: -76 },
+        { tier: 3, quality: 'rare', bonus: -80 },
+        { tier: 3, quality: 'epic', bonus: -95 },
+        { tier: 2, quality: 'legendary', bonus: -100 },
+        { tier: 3, quality: 'legendary', bonus: -125 },
+    ]
+};
+
+function generateModuleTable() {
+    const tbody = document.getElementById('moduleTableBody');
+    tbody.innerHTML = '';
+
+    for(let index=0; index<moduleData.Productivity.length; index++) {
+        const row = document.createElement('tr');
+        for(let moduleType of [ "Productivity", "Speed", "Quality", "Efficiency" ]) {
+            const module = moduleData[moduleType][index];
+            const baseName = moduleType + "_module";
+
+            const cell = document.createElement('td');
+            // Determine CSS class based on tier
+            const cellClass = module.tier === 1 ? '' : `tier-${module.tier}`;
+        
+            const moduleCell = document.createElement('div');
+            moduleCell.className = `module-cell ${cellClass}`;
+            
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'entity-image-container';
+            
+            const img = document.createElement('img');
+            const tierSuffix = module.tier > 1 ? `_${module.tier}` : '';
+            img.src = `https://wiki.factorio.com/images/thumb/${baseName}${tierSuffix}.png/32px-${baseName}${tierSuffix}.png`;
+            img.alt = `${module.quality} ${moduleType} module${module.tier > 1 ? ` ${module.tier}` : ''}`;
+            img.className = 'entity-image';
+            img.onerror = "this.style.display='none'";
+            
+            imageContainer.appendChild(img);
+            
+            // Add quality overlay if not normal
+            if (module.quality.toLowerCase() !== 'normal') {
+                const qualityOverlay = document.createElement('div');
+                qualityOverlay.className = 'quality-overlay';
+                const qualityImg = document.createElement('img');
+                qualityImg.src = `https://wiki.factorio.com/images/Quality_${module.quality.toLowerCase()}.png`;
+                qualityImg.alt = module.quality.toLowerCase();
+                qualityImg.onerror = "this.style.display='none'";
+                qualityOverlay.appendChild(qualityImg);
+                imageContainer.appendChild(qualityOverlay);
+            }
+            
+            const tooltipText = document.createElement('span');
+            tooltipText.className = 'tooltiptext';
+            tooltipText.textContent = `${module.quality} ${moduleType} module${module.tier > 1 ? ` ${module.tier}` : ''}`;
+            
+            tooltip.appendChild(imageContainer);
+            tooltip.appendChild(tooltipText);
+            
+            const bonus = document.createElement('div');
+            bonus.className = 'module-bonus';
+            bonus.textContent = `${module.bonus > 0 ? '+' : ''}${module.bonus}%`;
+            
+            moduleCell.appendChild(tooltip);
+            moduleCell.appendChild(bonus);
+            cell.appendChild(moduleCell);
+            row.appendChild(cell);
+        }
+        
+        tbody.appendChild(row);
+    }
+}
+
+class BlueprintEditor {
+    constructor() {
+        this.blueprintData = null;
+        this.jsonString = '';
+        this.searchResults = [];
+        this.currentSearchIndex = 0;
+        this.replaceButtons = [];
+        this.activeFilters = new Set(['entities']); // Start with entities selected
+        
+        this.initializeElements();
+        this.bindEvents();
+        this.setupGlobalPaste();
+        this.loadFromStorage();
+        this.updateSectionVisibility();
+        generateModuleTable();
+    }
+    
+    initializeElements() {
+        this.blueprintInput = document.getElementById('blueprintInput');
+        this.jsonDisplay = document.getElementById('jsonDisplay');
+        this.jsonStatus = document.getElementById('jsonStatus');
+        this.searchInput = document.getElementById('searchInput');
+        this.replaceInput = document.getElementById('replaceInput');
+        this.searchResults = document.getElementById('searchResults');
+        this.entityAnalysis = document.getElementById('entityAnalysis');
+        this.exportStatus = document.getElementById('exportStatus');
+        
+        this.decodeBtn = document.getElementById('decodeBtn');
+        this.clearBtn = document.getElementById('clearBtn');
+        this.searchBtn = document.getElementById('searchBtn');
+        this.replaceBtn = document.getElementById('replaceBtn');
+        this.replaceAllBtn = document.getElementById('replaceAllBtn');
+        this.encodeBtn = document.getElementById('encodeBtn');
+        this.downloadBtn = document.getElementById('downloadBtn');
+        this.saveJsonBtn = document.getElementById('saveJsonBtn');
+    }
+    
+    bindEvents() {
+        this.decodeBtn.addEventListener('click', () => this.decodeBlueprint());
+        this.saveJsonBtn.addEventListener('click', () => this.saveJson());
+        this.clearBtn.addEventListener('click', () => this.clearAll());
+        this.searchBtn.addEventListener('click', () => this.search());
+        this.replaceBtn.addEventListener('click', () => this.replace());
+        this.replaceAllBtn.addEventListener('click', () => this.replaceAll());
+        this.encodeBtn.addEventListener('click', () => this.encodeAndCopy());
+        this.downloadBtn.addEventListener('click', () => this.downloadBlueprint());
+        
+        this.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.search();
+        });
+        
+        // Auto-decode on input
+        this.blueprintInput.addEventListener('input', () => {
+            this.saveToStorage();
+            if (this.blueprintInput.value.trim()) {
+                this.decodeBlueprint();
+            }
+        });
+        
+        // Add filter button event listeners
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                this.toggleFilter(e.target.dataset.filter);
+                this.saveToStorage();
+            }
+        });
+    }
+    
+    setupGlobalPaste() {
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'v' && document.activeElement === document.body) {
+                e.preventDefault();
+                navigator.clipboard.readText().then(text => {
+                    this.blueprintInput.value = text;
+                    this.blueprintInput.focus();
+                    this.saveToStorage();
+                    if (text.trim()) {
+                        this.decodeBlueprint();
+                    }
+                }).catch(err => {
+                    console.log('Could not read clipboard:', err);
+                });
+            }
+        });
+    }
+    
+    async decodeBlueprint() {
+        const input = this.blueprintInput.value.trim();
+        if (!input) {
+            this.showError('Please enter a blueprint string');
+            return;
+        }
+        
+        try {
+            // Remove first character (version prefix)
+            const withoutPrefix = input.substring(1);
+            
+            // Base64 decode to binary string
+            const binaryString = atob(withoutPrefix);
+            
+            // Convert binary string to Uint8Array
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            // Decompress using pako (with zlib header)
+            const decompressed = pako.inflate(bytes, { to: 'string' });
+            
+            // Parse JSON
+            this.blueprintData = JSON.parse(decompressed);
+            this.jsonString = JSON.stringify(this.blueprintData, null, 2);
+            
+            this.displayJson();
+            this.analyzeEntities();
+            this.updateSectionVisibility();
+            this.showSuccess('Blueprint decoded successfully!');
+            
+        } catch (error) {
+            this.showError('Failed to decode blueprint: ' + error.message);
+            console.error('Decode error:', error);
+        }
+    }
+    
+    displayJson() {
+        this.jsonDisplay.value = this.jsonString;
+        this.jsonStatus.textContent = `JSON size: ${this.jsonString.length} characters`;
+    }
+    
+    saveJson() {
+        const raw = this.jsonDisplay.value.trim();
+        if (!raw) {
+            this.showError('No JSON to save');
+            return;
+        }
+        try {
+            this.blueprintData = JSON.parse(raw);
+            this.jsonString = JSON.stringify(this.blueprintData, null, 2);
+            this.displayJson();
+            this.analyzeEntities();
+            this.showSuccess('JSON saved');
+        } catch (e) {
+            this.showError('Invalid JSON: ' + e.message);
+        }
+    }
+    
+    search() {
+        const searchTerm = this.searchInput.value.trim();
+        if (!searchTerm) {
+            this.showError('Please enter a search term');
+            return;
+        }
+        
+        if (!this.jsonString) {
+            this.showError('No JSON to search in. Please decode a blueprint first.');
+            return;
+        }
+        
+        const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        const matches = [...this.jsonString.matchAll(regex)];
+        
+        if (matches.length === 0) {
+            this.searchResults.innerHTML = '<div class="error">No matches found</div>';
+            return;
+        }
+        
+        this.searchResults.innerHTML = `
+            <div class="success">Found ${matches.length} match${matches.length === 1 ? '' : 'es'}</div>
+            <div class="status">Click "Replace" to replace the first match, or "Replace All" to replace all matches</div>
+        `;
+        
+        // Highlight first match
+        this.highlightMatch(matches[0]);
+    }
+    
+    highlightMatch(match) {
+        this.jsonDisplay.setSelectionRange(match.index, match.index + match[0].length);
+        this.jsonDisplay.focus();
+    }
+    
+    replace() {
+        const searchTerm = this.searchInput.value.trim();
+        const replaceTerm = this.replaceInput.value;
+        
+        if (!searchTerm) {
+            this.showError('Please enter a search term');
+            return;
+        }
+        
+        if (!this.jsonString) {
+            this.showError('No JSON to search in. Please decode a blueprint first.');
+            return;
+        }
+        
+        const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        const match = this.jsonString.match(regex);
+        
+        if (!match) {
+            this.showError('No match found to replace');
+            return;
+        }
+        
+        this.jsonString = this.jsonString.replace(regex, replaceTerm);
+        this.blueprintData = JSON.parse(this.jsonString);
+        this.displayJson();
+        this.showSuccess('Replacement completed');
+    }
+    
+    replaceAll() {
+        const searchTerm = this.searchInput.value.trim();
+        const replaceTerm = this.replaceInput.value;
+        
+        if (!searchTerm) {
+            this.showError('Please enter a search term');
+            return;
+        }
+        
+        if (!this.jsonString) {
+            this.showError('No JSON to search in. Please decode a blueprint first.');
+            return;
+        }
+        
+        const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        const matches = [...this.jsonString.matchAll(regex)];
+        
+        if (matches.length === 0) {
+            this.showError('No matches found to replace');
+            return;
+        }
+        
+        this.jsonString = this.jsonString.replace(regex, replaceTerm);
+        this.blueprintData = JSON.parse(this.jsonString);
+        this.displayJson();
+        this.analyzeEntities();
+        this.showSuccess(`Replaced ${matches.length} match${matches.length === 1 ? '' : 'es'}`);
+    }
+    
+    async encodeAndCopy() {
+        if (!this.blueprintData) {
+            this.showError('No blueprint data to encode. Please decode a blueprint first.');
+            return;
+        }
+        
+        try {
+            // Apply any active replacements
+            const hadReplacements = this.applyReplacements();
+            
+            // Convert JSON to string
+            const jsonString = JSON.stringify(this.blueprintData);
+            
+            // Compress using pako (with zlib header)
+            const compressed = pako.deflate(jsonString);
+            
+            // Convert Uint8Array to base64 directly
+            const base64 = btoa(String.fromCharCode.apply(null, compressed));
+            
+            // Add version prefix
+            const blueprintString = '0' + base64;
+            
+            // Copy to clipboard
+            await navigator.clipboard.writeText(blueprintString);
+            
+            const message = hadReplacements ? 
+                'Blueprint with replacements applied and copied to clipboard!' : 
+                'Blueprint encoded and copied to clipboard!';
+            this.showSuccess(message);
+            
+        } catch (error) {
+            this.showError('Failed to encode blueprint: ' + error.message);
+            console.error('Encode error:', error);
+        }
+    }
+    
+    downloadBlueprint() {
+        if (!this.blueprintData) {
+            this.showError('No blueprint data to download. Please decode a blueprint first.');
+            return;
+        }
+        
+        try {
+            // Apply any active replacements
+            const hadReplacements = this.applyReplacements();
+            
+            // Convert JSON to string
+            const jsonString = JSON.stringify(this.blueprintData);
+            
+            // Compress using pako (with zlib header)
+            const compressed = pako.deflate(jsonString);
+            
+            // Convert Uint8Array to base64 directly
+            const base64 = btoa(String.fromCharCode.apply(null, compressed));
+            
+            // Add version prefix
+            const blueprintString = '0' + base64;
+            
+            // Create download
+            const blob = new Blob([blueprintString], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'blueprint.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            const message = hadReplacements ? 
+                'Blueprint with replacements applied and downloaded!' : 
+                'Blueprint downloaded!';
+            this.showSuccess(message);
+            
+        } catch (error) {
+            this.showError('Failed to download blueprint: ' + error.message);
+            console.error('Download error:', error);
+        }
+    }
+    
+    toggleFilter(filterType) {
+        if (filterType === 'all') {
+            // Toggle all filters
+            const allFilters = ['entities', 'modules', 'recipes', 'conditions', 'requests'];
+            const allActive = allFilters.every(filter => this.activeFilters.has(filter));
+            
+            if (allActive) {
+                // If all are active, deactivate all
+                this.activeFilters.clear();
+            } else {
+                // If not all are active, activate all
+                allFilters.forEach(filter => this.activeFilters.add(filter));
+            }
+        } else {
+            // Toggle individual filter
+            if (this.activeFilters.has(filterType)) {
+                this.activeFilters.delete(filterType);
+            } else {
+                this.activeFilters.add(filterType);
+            }
+        }
+        
+        // Update button states
+        this.updateFilterButtons();
+        this.analyzeEntities();
+    }
+    
+    updateFilterButtons() {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const filterType = btn.dataset.filter;
+            if (filterType === 'all') {
+                const allFilters = ['entities', 'modules', 'recipes', 'conditions', 'requests'];
+                const allActive = allFilters.every(filter => this.activeFilters.has(filter));
+                btn.classList.toggle('active', allActive);
+            } else {
+                btn.classList.toggle('active', this.activeFilters.has(filterType));
+            }
+        });
+    }
+    
+    analyzeEntities() {
+        if (!this.blueprintData || !this.blueprintData.blueprint || !this.blueprintData.blueprint.entities) {
+            this.entityAnalysis.innerHTML = '<div class="error">No entities found in blueprint</div>';
+            return;
+        }
+        
+        const entities = this.blueprintData.blueprint.entities;
+        let dataToAnalyze = [];
+        
+        // Collect data from all active filters
+        if (this.activeFilters.has('entities')) {
+            dataToAnalyze = dataToAnalyze.concat(this.getEntityData(entities));
+        }
+        if (this.activeFilters.has('modules')) {
+            dataToAnalyze = dataToAnalyze.concat(this.getModuleData(entities));
+        }
+        if (this.activeFilters.has('recipes')) {
+            dataToAnalyze = dataToAnalyze.concat(this.getRecipeData(entities));
+        }
+        if (this.activeFilters.has('conditions')) {
+            dataToAnalyze = dataToAnalyze.concat(this.getConditionData(entities));
+        }
+        if (this.activeFilters.has('requests')) {
+            dataToAnalyze = dataToAnalyze.concat(this.getRequestData(entities));
+        }
+        
+        if (dataToAnalyze.length === 0) {
+            const activeFilterNames = Array.from(this.activeFilters).join(', ');
+            this.entityAnalysis.innerHTML = `<div class="error">No data found for selected filters: ${activeFilterNames}</div>`;
+            return;
+        }
+        
+        // Count items by type, name, and quality
+        const itemCounts = {};
+        dataToAnalyze.forEach(item => {
+            const key = `${item.type}_${item.name}_${item.quality}`;
+            
+            if (itemCounts[key]) {
+                itemCounts[key].count++;
+            } else {
+                itemCounts[key] = {
+                    name: item.name,
+                    quality: item.quality,
+                    count: 1,
+                    type: item.type
+                };
+            }
+        });
+        
+        // Sort items by count (descending)
+        const sortedItems = Object.values(itemCounts)
+            .sort((a, b) => b.count - a.count);
+        
+        // Clear existing replace buttons
+        this.replaceButtons = [];
+        
+        // Generate table HTML
+        let tableHTML = '<table class="entity-table">';
+        tableHTML += '<thead><tr><th>Downgrade</th><th>Item</th><th>Upgrade</th><th>Count</th></tr></thead>';
+        tableHTML += '<tbody>';
+        
+        sortedItems.forEach(item => {
+            const imageUrl = toImageUrl(item.name);
+            const qualityText = item.quality.charAt(0).toUpperCase() + item.quality.slice(1);
+            const qualityImageUrl = qualityText === 'Normal' ? '' : qualityToImage(item.quality);
+            const displayName = item.quality === 'normal' ? item.name : `${qualityText} ${item.name}`;
+            
+            tableHTML += `
+                <tr>
+                    <td class="downgrade-column" style="text-align: right;"></td>
+                    <td>
+                        <div class="tooltip">
+                            <div class="entity-image-container">
+                                <img src="${imageUrl}" alt="${item.name}" class="entity-image" onerror="this.style.display='none'">
+                                <div class="quality-overlay">
+                                    <img src="${qualityImageUrl}" alt="${qualityText}" onerror="this.style.display='none'">
+                                </div>
+                            </div>
+                            <span class="tooltiptext">${displayName}</span>
+                        </div>
+                    </td>
+                    <td class="upgrade-column"></td>
+                    <td class="entity-count">${item.count}</td>
+                </tr>
+            `;
+        });
+        
+        tableHTML += '</tbody></table>';
+        
+        const totalItems = dataToAnalyze.length;
+        const uniqueItemTypes = sortedItems.length;
+        
+        const activeFilterNames = Array.from(this.activeFilters).join(', ');
+        this.entityAnalysis.innerHTML = `
+            <div class="success">Found ${totalItems} items of ${uniqueItemTypes} different types (including quality variants) from: ${activeFilterNames}</div>
+            ${tableHTML}
+        `;
+        
+        // Create ReplaceButton instances for each row
+        const tableRows = this.entityAnalysis.querySelectorAll('tbody tr');
+        sortedItems.forEach((item, index) => {
+            const row = tableRows[index];
+            const fullEntityName = item.quality === 'normal' ? item.name : `${item.quality} ${item.name}`;
+            
+            let upgradePath, downgradeTargets, upgradeTargets;
+            
+            if (item.type === 'entity' || item.type === 'module') {
+                // Use full upgrade paths for entities and modules
+                upgradePath = this.findUpgradePath(fullEntityName);
+                downgradeTargets = upgradePath ? this.getAllDowngradeTargets(fullEntityName, upgradePath) : [];
+                upgradeTargets = upgradePath ? this.getAllUpgradeTargets(fullEntityName, upgradePath) : [];
+            } else {
+                // Use quality-only paths for recipes, conditions, and requests
+                upgradePath = this.getQualityUpgradePath(item.name);
+                downgradeTargets = this.getAllDowngradeTargets(fullEntityName, upgradePath);
+                upgradeTargets = this.getAllUpgradeTargets(fullEntityName, upgradePath);
+            }
+            
+            const currentEntityName = item.quality === 'normal' ? item.name : `${item.quality} ${item.name}`;
+            
+            // Create downgrade buttons
+            const downgradeColumn = row.querySelector('.downgrade-column');
+            downgradeTargets.forEach(target => {
+                const replaceButton = new ReplaceButton(this, currentEntityName, target, row, item.type);
+                replaceButton.render(downgradeColumn);
+                this.replaceButtons.push(replaceButton);
+            });
+            
+            // Create upgrade buttons
+            const upgradeColumn = row.querySelector('.upgrade-column');
+            upgradeTargets.forEach(target => {
+                const replaceButton = new ReplaceButton(this, currentEntityName, target, row, item.type);
+                replaceButton.render(upgradeColumn);
+                this.replaceButtons.push(replaceButton);
+            });
+        });
+    }
+    
+    
+    getEntityData(entities) {
+        return entities.map(entity => ({
+            name: entity.name,
+            quality: entity.quality || 'normal',
+            type: 'entity'
+        }));
+    }
+    
+    getModuleData(entities) {
+        const moduleData = [];
+        entities.forEach(entity => {
+            if (Array.isArray(entity.items)) {
+                entity.items.forEach(item => {
+                    if (item.id && item.id.name) {
+                        moduleData.push({
+                            name: item.id.name,
+                            quality: item.id.quality || 'normal',
+                            type: 'module'
+                        });
+                    }
+                });
+            }
+        });
+        return moduleData;
+    }
+    
+    getRecipeData(entities) {
+        const recipeData = [];
+        entities.forEach(entity => {
+            if (entity.recipe) {
+                recipeData.push({
+                    name: entity.recipe,
+                    quality: entity.recipe_quality || 'normal',
+                    type: 'recipe'
+                });
+            }
+        });
+        return recipeData;
+    }
+    
+    getConditionData(entities) {
+        const conditionData = [];
+        entities.forEach(entity => {
+            if (entity.control_behavior && entity.control_behavior.circuit_condition) {
+                const condition = entity.control_behavior.circuit_condition;
+                if (condition.first_signal && condition.first_signal.name) {
+                    conditionData.push({
+                        name: condition.first_signal.name,
+                        quality: condition.first_signal.quality || 'normal',
+                        type: 'condition'
+                    });
+                }
+            }
+        });
+        return conditionData;
+    }
+    
+    getRequestData(entities) {
+        const requestData = [];
+        entities.forEach(entity => {
+            if (entity.request_filters && entity.request_filters.sections) {
+                entity.request_filters.sections.forEach(section => {
+                    if (section.filters) {
+                        section.filters.forEach(filter => {
+                            if (filter.name) {
+                                requestData.push({
+                                    name: filter.name,
+                                    quality: filter.quality || 'normal',
+                                    type: 'request'
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        return requestData;
+    }
+    
+    findUpgradePath(entityName) {
+        // Only look for exact match (including quality) for entities and modules
+        return upgrade_paths.find(path => path.includes(entityName));
+    }
+    
+    getQualityUpgradePath(itemName) {
+        // For recipes, conditions, and requests, only provide quality variants
+        const qualities = ['normal', 'uncommon', 'rare', 'epic', 'legendary'];
+        return qualities.map(quality => quality === 'normal' ? itemName : `${quality} ${itemName}`);
+    }
+    
+    getBaseEntityName(entityName) {
+        // Remove quality prefix if present
+        const parts = entityName.split(' ');
+        if (parts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(parts[0])) {
+            return parts.slice(1).join(' ');
+        }
+        return entityName;
+    }
+    
+    getAllDowngradeTargets(entityName, upgradePath) {
+        const currentIndex = upgradePath.indexOf(entityName);
+        
+        // Only proceed if exact match is found
+        if (currentIndex === -1) {
+            return [];
+        }
+        
+        return currentIndex > 0 ? upgradePath.slice(0, currentIndex) : [];
+    }
+    
+    getAllUpgradeTargets(entityName, upgradePath) {
+        const currentIndex = upgradePath.indexOf(entityName);
+        
+        // Only proceed if exact match is found
+        if (currentIndex === -1) {
+            return [];
+        }
+        
+        return currentIndex < upgradePath.length - 1 ? upgradePath.slice(currentIndex + 1) : [];
+    }
+    
+    
+    applyReplacements() {
+        const replacements = this.replaceButtons
+            .map(button => button.getReplacement())
+            .filter(replacement => replacement !== null);
+        
+        if (replacements.length === 0) {
+            return false; // No replacements to apply
+        }
+        
+        if (!this.blueprintData || !this.blueprintData.blueprint || !this.blueprintData.blueprint.entities) {
+            return false;
+        }
+        
+        let modified = false;
+        const entities = this.blueprintData.blueprint.entities;
+        
+        // Track specific changes to avoid double-processing
+        const changeTracker = new Set();
+        
+        // Process each replacement
+        replacements.forEach(replacement => {
+            const { from, to, type } = replacement;
+            
+            // Parse the target item to extract quality and base name
+            const targetParts = to.split(' ');
+            let targetQuality = 'normal';
+            let targetBaseName = to;
+            
+            if (targetParts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(targetParts[0])) {
+                targetQuality = targetParts[0];
+                targetBaseName = targetParts.slice(1).join(' ');
+            }
+            
+            // Parse the source item
+            const sourceParts = from.split(' ');
+            let sourceQuality = 'normal';
+            let sourceBaseName = from;
+            
+            if (sourceParts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(sourceParts[0])) {
+                sourceQuality = sourceParts[0];
+                sourceBaseName = sourceParts.slice(1).join(' ');
+            }
+            
+            // Apply replacements based on data type
+            entities.forEach((entity, entityIndex) => {
+                switch (type) {
+                    case 'entity':
+                        if (this.replaceEntityData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                            modified = true;
+                        }
+                        break;
+                    case 'module':
+                        if (this.replaceModuleData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                            modified = true;
+                        }
+                        break;
+                    case 'recipe':
+                        if (this.replaceRecipeData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                            modified = true;
+                        }
+                        break;
+                    case 'condition':
+                        if (this.replaceConditionData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                            modified = true;
+                        }
+                        break;
+                    case 'request':
+                        if (this.replaceRequestData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex)) {
+                            modified = true;
+                        }
+                        break;
+                }
+            });
+        });
+        
+        if (modified) {
+            // Update the JSON string and refresh display
+            this.jsonString = JSON.stringify(this.blueprintData, null, 2);
+            this.displayJson();
+            this.analyzeEntities();
+        }
+        
+        return modified;
+    }
+    
+    replaceEntityData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+        const entityQuality = entity.quality || 'normal';
+        if (entity.name === sourceBaseName && entityQuality === sourceQuality) {
+            const changeKey = `entity_${entityIndex}_name`;
+            if (!changeTracker.has(changeKey)) {
+                entity.name = targetBaseName;
+                entity.quality = targetQuality;
+                changeTracker.add(changeKey);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    replaceModuleData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+        if (entity.items) {
+            return entity.items.some((item, itemIndex) => {
+                if (item.id && item.id.name === sourceBaseName && (item.id.quality || 'normal') === sourceQuality) {
+                    const changeKey = `entity_${entityIndex}_item_${itemIndex}_name`;
+                    if (!changeTracker.has(changeKey)) {
+                        item.id.name = targetBaseName;
+                        item.id.quality = targetQuality;
+                        changeTracker.add(changeKey);
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
+        return false;
+    }
+    
+    replaceRecipeData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+        const recipeQuality = entity.recipe_quality || 'normal';
+        if (entity.recipe === sourceBaseName && recipeQuality === sourceQuality) {
+            const changeKey = `entity_${entityIndex}_recipe`;
+            if (!changeTracker.has(changeKey)) {
+                entity.recipe = targetBaseName;
+                entity.recipe_quality = targetQuality;
+                changeTracker.add(changeKey);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    replaceConditionData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+        if (entity.control_behavior && entity.control_behavior.circuit_condition) {
+            const condition = entity.control_behavior.circuit_condition;
+            if (condition.first_signal && condition.first_signal.name === sourceBaseName && 
+                (condition.first_signal.quality || 'normal') === sourceQuality) {
+                const changeKey = `entity_${entityIndex}_condition_signal`;
+                if (!changeTracker.has(changeKey)) {
+                    condition.first_signal.name = targetBaseName;
+                    condition.first_signal.quality = targetQuality;
+                    changeTracker.add(changeKey);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    replaceRequestData(entity, sourceBaseName, sourceQuality, targetBaseName, targetQuality, changeTracker, entityIndex) {
+        if (entity.request_filters && entity.request_filters.sections) {
+            return entity.request_filters.sections.some((section, sectionIndex) => {
+                if (section.filters) {
+                    return section.filters.some((filter, filterIndex) => {
+                        if (filter.name === sourceBaseName && (filter.quality || 'normal') === sourceQuality) {
+                            const changeKey = `entity_${entityIndex}_section_${sectionIndex}_filter_${filterIndex}`;
+                            if (!changeTracker.has(changeKey)) {
+                                filter.name = targetBaseName;
+                                filter.quality = targetQuality;
+                                changeTracker.add(changeKey);
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                }
+                return false;
+            });
+        }
+        return false;
+    }
+    
+    replaceEntity(from, to) {
+        if (!this.jsonString) {
+            this.showError('No blueprint data available');
+            return;
+        }
+        
+        // Replace all instances of the entity
+        const regex = new RegExp(`"name":\\s*"${from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g');
+        const matches = [...this.jsonString.matchAll(regex)];
+        
+        if (matches.length === 0) {
+            this.showError(`No instances of "${from}" found to replace`);
+            return;
+        }
+        
+        this.jsonString = this.jsonString.replace(regex, `"name": "${to}"`);
+        this.blueprintData = JSON.parse(this.jsonString);
+        this.displayJson();
+        this.analyzeEntities();
+        this.showSuccess(`Replaced ${matches.length} instance${matches.length === 1 ? '' : 's'} of "${from}" with "${to}"`);
+    }
+    
+    clearAll() {
+        this.blueprintInput.value = '';
+        this.jsonDisplay.value = '';
+        this.jsonStatus.textContent = '';
+        this.searchInput.value = '';
+        this.replaceInput.value = '';
+        this.searchResults.innerHTML = '';
+        this.entityAnalysis.innerHTML = '';
+        this.exportStatus.innerHTML = '';
+        this.blueprintData = null;
+        this.jsonString = '';
+        this.activeFilters = new Set(['entities']); // Reset to default
+        
+        // Reset filter buttons
+        this.updateFilterButtons();
+        this.updateSectionVisibility();
+        this.saveToStorage();
+    }
+    
+    saveToStorage() {
+        try {
+            localStorage.setItem('factorio-blueprint-editor-blueprint', this.blueprintInput.value);
+            localStorage.setItem('factorio-blueprint-editor-filters', JSON.stringify(Array.from(this.activeFilters)));
+        } catch (e) {
+            console.log('Could not save to localStorage:', e);
+        }
+    }
+    
+    loadFromStorage() {
+        try {
+            // First restore the filters
+            const savedFilters = localStorage.getItem('factorio-blueprint-editor-filters');
+            if (savedFilters) {
+                this.activeFilters = new Set(JSON.parse(savedFilters));
+                this.updateFilterButtons();
+            }
+            
+            // Then restore and decode the blueprint
+            const savedBlueprint = localStorage.getItem('factorio-blueprint-editor-blueprint');
+            if (savedBlueprint) {
+                this.blueprintInput.value = savedBlueprint;
+                // Immediately decode the restored blueprint with the correct filters
+                if (savedBlueprint.trim()) {
+                    this.decodeBlueprint();
+                }
+            }
+        } catch (e) {
+            console.log('Could not load from localStorage:', e);
+        }
+    }
+    
+    updateSectionVisibility() {
+        const hasBlueprint = this.blueprintData !== null;
+        const sections = ['entitiesSection', 'searchSection', 'exportSection', 'jsonSection'];
+        
+        sections.forEach(sectionId => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                if (hasBlueprint) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            }
+        });
+    }
+    
+    showError(message) {
+        this.exportStatus.innerHTML = `<div class="error">${message}</div>`;
+    }
+    
+    showSuccess(message) {
+        this.exportStatus.innerHTML = `<div class="success">${message}</div>`;
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+// Initialize the editor when the page loads
+let blueprintEditor;
+document.addEventListener('DOMContentLoaded', () => {
+    blueprintEditor = new BlueprintEditor();
+});
+
+class ReplaceButton {
+    constructor(area, from, to, rowElement, dataType = 'entity') {
+        this.area = area;
+        this.from = from;
+        this.to = to;
+        this.rowElement = rowElement;
+        this.dataType = dataType;
+        this.isActive = false;
+        this.buttonElement = null;
+    }
+    
+    render(target) {
+        this.buttonElement = document.createElement('button');
+        this.buttonElement.className = 'replace-button';
+        this.buttonElement.style.cssText = 'font-size: 12px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px; margin: 2px;';
+        
+        // Parse target name to extract quality and base name
+        const targetParts = this.to.split(' ');
+        let targetQuality = 'normal';
+        let targetBaseName = this.to;
+        
+        if (targetParts.length > 1 && ['uncommon', 'rare', 'epic', 'legendary'].includes(targetParts[0])) {
+            targetQuality = targetParts[0];
+            targetBaseName = targetParts.slice(1).join(' ');
+        }
+        
+        const targetImageUrl = toImageUrl(targetBaseName);
+        const targetQualityText = targetQuality.charAt(0).toUpperCase() + targetQuality.slice(1);
+        const targetQualityImageUrl = targetQuality === 'normal' ? '' : qualityToImage(targetQuality);
+        
+        this.buttonElement.innerHTML = `
+            <div style="position: relative; width: 32px; height: 32px;">
+                <img src="${targetImageUrl}" alt="${targetBaseName}" style="width: 32px; height: 32px;" onerror="this.style.display='none'">
+                ${targetQualityImageUrl ? `<img src="${targetQualityImageUrl}" alt="${targetQualityText}" style="position: absolute; bottom: 0; left: 0; width: 12.8px; height: 12.8px;" onerror="this.style.display='none'">` : ''}
+            </div>
+        `;
+        
+        this.buttonElement.addEventListener('click', () => {
+            this.toggleActive();
+        });
+        
+        target.appendChild(this.buttonElement);
+    }
+    
+    toggleActive() {
+        // Deactivate all other buttons in the same row
+        if (this.rowElement) {
+            const allButtons = this.rowElement.querySelectorAll('.replace-button');
+            allButtons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.backgroundColor = '';
+            });
+        }
+        
+        // Toggle this button's active state
+        this.isActive = !this.isActive;
+        if (this.buttonElement) {
+            if (this.isActive) {
+                this.buttonElement.classList.add('active');
+                this.buttonElement.style.backgroundColor = 'orange';
+            } else {
+                this.buttonElement.classList.remove('active');
+                this.buttonElement.style.backgroundColor = '';
+            }
+        }
+    }
+    
+    getReplacement() {
+        return this.isActive ? { from: this.from, to: this.to, type: this.dataType } : null;
+    }
+}
+
+const upgrade_paths = [
+    [ 'transport-belt', 'fast-transport-belt', 'express-transport-belt', 'turbo-transport-belt' ],
+    [ 'underground-belt', 'fast-underground-belt', 'express-underground-belt', 'turbo-underground-belt' ],
+    [ 'splitter', 'fast-splitter', 'express-splitter', 'turbo-splitter' ],
+
+    [ 'burner-inserter', 'inserter', 'fast-inserter', 'bulk-inserter', 'uncommon bulk-inserter', 'rare bulk-inserter', 'epic bulk-inserter', 'legendary bulk-inserter', 'stack-inserter', 'uncommon stack-inserter', 'rare stack-inserter', 'epic stack-inserter', 'legendary stack-inserter' ],
+    [ 'long-handed-inserter', 'uncommon long-handed-inserter', 'rare long-handed-inserter', 'epic long-handed-inserter', 'legendary long-handed-inserter' ],
+    [ 'pump', 'uncommon pump', 'rare pump', 'epic pump', 'legendary pump' ],
+
+    [ 'wooden-chest', 'iron-chest', 'steel-chest', 'uncommon steel-chest', 'rare steel-chest', 'epic steel-chest', 'legendary steel-chest' ],
+    [ 'small-electric-pole', 'medium-electric-pole', 'uncommon medium-electric-pole', 'rare medium-electric-pole', 'epic medium-electric-pole', 'legendary medium-electric-pole' ],
+    [ 'big-electric-pole', 'uncommon big-electric-pole', 'rare big-electric-pole', 'epic big-electric-pole', 'legendary big-electric-pole' ],
+    [ 'substation', 'uncommon substation', 'rare substation', 'epic substation', 'legendary substation' ],
+    [ 'roboport', 'uncommon roboport', 'rare roboport', 'epic roboport', 'legendary roboport' ],
+    [ 'beacon', 'uncommon beacon', 'rare beacon', 'epic beacon', 'legendary beacon' ],
+
+    [ 'artillery-wagon', 'uncommon artillery-wagon', 'rare artillery-wagon', 'epic artillery-wagon', 'legendary artillery-wagon' ],
+    [ 'car', 'tank', 'uncommon tank', 'rare tank', 'epic tank', 'legendary tank' ],
+    [ 'spidertron', 'uncommon spidertron', 'rare spidertron', 'epic spidertron', 'legendary spidertron' ],
+    [ 'logistic-robot', 'uncommon logistic-robot', 'rare logistic-robot', 'epic logistic-robot', 'legendary logistic-robot' ],
+    [ 'construction-robot', 'uncommon construction-robot', 'rare construction-robot', 'epic construction-robot', 'legendary construction-robot' ],
+    // logistic chests are missing
+    [ 'assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3', 'uncommon assembling-machine-3', 'rare assembling-machine-3', 'epic assembling-machine-3', 'legendary assembling-machine-3' ],
+    [ 'solar-panel', 'uncommon solar-panel', 'rare solar-panel', 'epic solar-panel', 'legendary solar-panel' ],
+
+    [ 'crusher', 'uncommon crusher', 'rare crusher', 'epic crusher', 'legendary crusher' ],
+    [ 'asteroid-collector', 'uncommon asteroid-collector', 'rare asteroid-collector', 'epic asteroid-collector', 'legendary asteroid-collector' ],
+    [ 'thruster', 'uncommon thruster', 'rare thruster', 'epic thruster', 'legendary thruster' ],
+    [ 'cargo-bay', 'uncommon cargo-bay', 'rare cargo-bay', 'epic cargo-bay', 'legendary cargo-bay' ],
+
+    [ 'stone-furnace', 'steel-furnace', 'uncommon steel-furnace', 'rare steel-furnace', 'epic steel-furnace', 'legendary steel-furnace' ],
+    [ 'electric-furnace', 'uncommon electric-furnace', 'rare electric-furnace', 'epic electric-furnace', 'legendary electric-furnace' ],
+    [ 'oil-refinery', 'uncommon oil-refinery', 'rare oil-refinery', 'epic oil-refinery', 'legendary oil-refinery' ],
+    [ 'chemical-plant', 'uncommon chemical-plant', 'rare chemical-plant', 'epic chemical-plant', 'legendary chemical-plant' ],
+    [ 'electromagnetic-plant', 'uncommon electromagnetic-plant', 'rare electromagnetic-plant', 'epic electromagnetic-plant', 'legendary electromagnetic-plant' ],
+    [ 'foundry', 'uncommon foundry', 'rare foundry', 'epic foundry', 'legendary foundry' ],
+    [ 'cryogenic-plant', 'uncommon cryogenic-plant', 'rare cryogenic-plant', 'epic cryogenic-plant', 'legendary cryogenic-plant' ],
+    [ 'lab', 'uncommon lab', 'rare lab', 'epic lab', 'legendary lab' ],
+    [ 'biolab', 'uncommon biolab', 'rare biolab', 'epic biolab', 'legendary biolab' ],
+
+    [ 'gun-turret', 'uncommon gun-turret', 'rare gun-turret', 'epic gun-turret', 'legendary gun-turret' ],
+    [ 'laser-turret', 'uncommon laser-turret', 'rare laser-turret', 'epic laser-turret', 'legendary laser-turret' ],
+    [ 'flamethrower-turret', 'uncommon flamethrower-turret', 'rare flamethrower-turret', 'epic flamethrower-turret', 'legendary flamethrower-turret' ],
+    [ 'artillery-turret', 'uncommon artillery-turret', 'rare artillery-turret', 'epic artillery-turret', 'legendary artillery-turret' ],
+    [ 'rocket-turret', 'uncommon rocket-turret', 'rare rocket-turret', 'epic rocket-turret', 'legendary rocket-turret' ],
+    [ 'tesla-turret', 'uncommon tesla-turret', 'rare tesla-turret', 'epic tesla-turret', 'legendary tesla-turret' ],
+    [ 'railgun-turret', 'uncommon railgun-turret', 'rare railgun-turret', 'epic railgun-turret', 'legendary railgun-turret' ],
+    [ 'land-mine', 'uncommon land-mine', 'rare land-mine', 'epic land-mine', 'legendary land-mine' ],
+    [ 'radar', 'uncommon radar', 'rare radar', 'epic radar', 'legendary radar' ],
+    [ 'stone-wall', 'uncommon stone-wall', 'rare stone-wall', 'epic stone-wall', 'legendary stone-wall' ],
+
+    [ 'productivity-module', 'uncommon productivity-module', 'productivity-module-2', 'rare productivity-module', 'uncommon productivity-module-2', 'epic productivity-module', 'rare productivity-module-2', 'productivity-module-3', 'legendary productivity-module', 'epic productivity-module-2', 'uncommon productivity-module-3', 'legendary productivity-module-2', 'rare productivity-module-3', 'epic productivity-module-3', 'legendary productivity-module-3' ],
+    [ 'speed-module', 'uncommon speed-module', 'speed-module-2', 'rare speed-module', 'epic speed-module', 'uncommon speed-module-2', 'rare speed-module-2', 'speed-module-3', 'legendary speed-module', 'epic speed-module-2', 'uncommon speed-module-3', 'legendary speed-module-2', 'rare speed-module-3', 'epic speed-module-3', 'legendary speed-module-3' ],
+    [ 'quality-module', 'uncommon quality-module', 'rare quality-module', 'epic quality-module', 'quality-module-2', 'quality-module-3', 'legendary quality-module', 'uncommon quality-module-2', 'uncommon quality-module-3', 'rare quality-module-2', 'epic quality-module-2', 'rare quality-module-3', 'epic quality-module-3', 'legendary quality-module-2', 'legendary quality-module-3' ],
+    [ 'efficiency-module', 'uncommon efficiency-module', 'efficiency-module-2', 'rare efficiency-module', 'efficiency-module-3', 'uncommon efficiency-module-2', 'epic efficiency-module', 'rare efficiency-module-2', 'uncommon efficiency-module-3', 'legendary efficiency-module', 'epic efficiency-module-2', 'rare efficiency-module-3', 'epic efficiency-module-3', 'legendary efficiency-module-2', 'legendary efficiency-module-3' ],
+];
+function qualityToImage(quality) {
+    return `https://wiki.factorio.com/images/Quality_${quality}.png`;
+}
+
+function toImageUrl(itemName) {
+    // Dictionary mapping Factorio item names to their image URLs on the wiki
+    const FACTORIO_ITEMS_32px = {
+        'wooden chest': 'Wooden_chest.png/32px-Wooden_chest.png',
+        'iron chest': 'Iron_chest.png/32px-Iron_chest.png',
+        'steel chest': 'Steel_chest.png/32px-Steel_chest.png',
+        'storage tank': 'Storage_tank.png/32px-Storage_tank.png',
+        'transport belt': 'Transport_belt.png/32px-Transport_belt.png',
+        'fast transport belt': 'Fast_transport_belt.png/32px-Fast_transport_belt.png',
+        'express transport belt': 'Express_transport_belt.png/32px-Express_transport_belt.png',
+        'turbo transport belt': 'Turbo_transport_belt.png/32px-Turbo_transport_belt.png',
+        'underground belt': 'Underground_belt.png/32px-Underground_belt.png',
+        'fast underground belt': 'Fast_underground_belt.png/32px-Fast_underground_belt.png',
+        'express underground belt': 'Express_underground_belt.png/32px-Express_underground_belt.png',
+        'turbo underground belt': 'Turbo_underground_belt.png/32px-Turbo_underground_belt.png',
+        'splitter': 'Splitter.png/32px-Splitter.png',
+        'fast splitter': 'Fast_splitter.png/32px-Fast_splitter.png',
+        'express splitter': 'Express_splitter.png/32px-Express_splitter.png',
+        'turbo splitter': 'Turbo_splitter.png/32px-Turbo_splitter.png',
+        'burner inserter': 'Burner_inserter.png/32px-Burner_inserter.png',
+        'inserter': 'Inserter.png/32px-Inserter.png',
+        'long handed inserter': 'Long-handed_inserter.png/32px-Long-handed_inserter.png',
+        'fast inserter': 'Fast_inserter.png/32px-Fast_inserter.png',
+        'bulk inserter': 'Bulk_inserter.png/32px-Bulk_inserter.png',
+        'stack inserter': 'Stack_inserter.png/32px-Stack_inserter.png',
+        'small electric pole': 'Small_electric_pole.png/32px-Small_electric_pole.png',
+        'medium electric pole': 'Medium_electric_pole.png/32px-Medium_electric_pole.png',
+        'big electric pole': 'Big_electric_pole.png/32px-Big_electric_pole.png',
+        'substation': 'Substation.png/32px-Substation.png',
+        'pipe': 'Pipe.png/32px-Pipe.png',
+        'pipe to ground': 'Pipe_to_ground.png/32px-Pipe_to_ground.png',
+        'pump': 'Pump.png/32px-Pump.png',
+        'rail': 'Straight_rail.png/32px-Straight_rail.png',
+        'rail ramp': 'Rail_ramp.png/32px-Rail_ramp.png',
+        'rail support': 'Rail_support.png/32px-Rail_support.png',
+        'train stop': 'Train_stop.png/32px-Train_stop.png',
+        'rail signal': 'Rail_signal.png/32px-Rail_signal.png',
+        'rail chain signal': 'Rail_chain_signal.png/32px-Rail_chain_signal.png',
+        'locomotive': 'Locomotive.png/32px-Locomotive.png',
+        'cargo wagon': 'Cargo_wagon.png/32px-Cargo_wagon.png',
+        'fluid wagon': 'Fluid_wagon.png/32px-Fluid_wagon.png',
+        'artillery wagon': 'Artillery_wagon.png/32px-Artillery_wagon.png',
+        'car': 'Car.png/32px-Car.png',
+        'tank': 'Tank.png/32px-Tank.png',
+        'spidertron': 'Spidertron.png/32px-Spidertron.png',
+        'spidertron remote': 'Spidertron_remote.png/32px-Spidertron_remote.png',
+        'logistic robot': 'Logistic_robot.png/32px-Logistic_robot.png',
+        'construction robot': 'Construction_robot.png/32px-Construction_robot.png',
+        'active provider chest': 'Active_provider_chest.png/32px-Active_provider_chest.png',
+        'passive provider chest': 'Passive_provider_chest.png/32px-Passive_provider_chest.png',
+        'storage chest': 'Storage_chest.png/32px-Storage_chest.png',
+        'buffer chest': 'Buffer_chest.png/32px-Buffer_chest.png',
+        'requester chest': 'Requester_chest.png/32px-Requester_chest.png',
+        'roboport': 'Roboport.png/32px-Roboport.png',
+        'lamp': 'Lamp.png/32px-Lamp.png',
+        'small lamp': 'Lamp.png/32px-Lamp.png',
+        'red wire': 'Red_wire.png/32px-Red_wire.png',
+        'green wire': 'Green_wire.png/32px-Green_wire.png',
+        'arithmetic combinator': 'Arithmetic_combinator.png/32px-Arithmetic_combinator.png',
+        'decider combinator': 'Decider_combinator.png/32px-Decider_combinator.png',
+        'selector combinator': 'Selector_combinator.png/32px-Selector_combinator.png',
+        'constant combinator': 'Constant_combinator.png/32px-Constant_combinator.png',
+        'power switch': 'Power_switch.png/32px-Power_switch.png',
+        'programmable speaker': 'Programmable_speaker.png/32px-Programmable_speaker.png',
+        'display panel': 'Display_panel.png/32px-Display_panel.png',
+        'stone brick': 'Stone_brick.png/32px-Stone_brick.png',
+        'concrete': 'Concrete.png/32px-Concrete.png',
+        'hazard concrete': 'Hazard_concrete.png/32px-Hazard_concrete.png',
+        'refined concrete': 'Refined_concrete.png/32px-Refined_concrete.png',
+        'refined hazard concrete': 'Refined_hazard_concrete.png/32px-Refined_hazard_concrete.png',
+        'landfill': 'Landfill.png/32px-Landfill.png',
+        'artificial yumako soil': 'Artificial_yumako_soil.png/32px-Artificial_yumako_soil.png',
+        'overgrowth yumako soil': 'Overgrowth_yumako_soil.png/32px-Overgrowth_yumako_soil.png',
+        'artificial jellynut soil': 'Artificial_jellynut_soil.png/32px-Artificial_jellynut_soil.png',
+        'overgrowth jellynut soil': 'Overgrowth_jellynut_soil.png/32px-Overgrowth_jellynut_soil.png',
+        'ice platform': 'Ice_platform.png/32px-Ice_platform.png',
+        'foundation': 'Foundation.png/32px-Foundation.png',
+        'cliff explosives': 'Cliff_explosives.png/32px-Cliff_explosives.png',
+        'repair pack': 'Repair_pack.png/32px-Repair_pack.png',
+        'blueprint': 'Blueprint.png/32px-Blueprint.png',
+        'deconstruction planner': 'Deconstruction_planner.png/32px-Deconstruction_planner.png',
+        'upgrade planner': 'Upgrade_planner.png/32px-Upgrade_planner.png',
+        'blueprint book': 'Blueprint_book.png/32px-Blueprint_book.png',
+        'boiler': 'Boiler.png/32px-Boiler.png',
+        'steam engine': 'Steam_engine.png/32px-Steam_engine.png',
+        'solar panel': 'Solar_panel.png/32px-Solar_panel.png',
+        'accumulator': 'Accumulator.png/32px-Accumulator.png',
+        'nuclear reactor': 'Nuclear_reactor.png/32px-Nuclear_reactor.png',
+        'heat pipe': 'Heat_pipe.png/32px-Heat_pipe.png',
+        'heat exchanger': 'Heat_exchanger.png/32px-Heat_exchanger.png',
+        'steam turbine': 'Steam_turbine.png/32px-Steam_turbine.png',
+        'fusion reactor': 'Fusion_reactor.png/32px-Fusion_reactor.png',
+        'fusion generator': 'Fusion_generator.png/32px-Fusion_generator.png',
+        'iron plate': 'Iron_plate.png/32px-Iron_plate.png',
+        'copper plate': 'Copper_plate.png/32px-Copper_plate.png',
+        'steel plate': 'Steel_plate.png/32px-Steel_plate.png',
+        'iron ore': 'Iron_ore.png/32px-Iron_ore.png',
+        'copper ore': 'Copper_ore.png/32px-Copper_ore.png',
+        'coal': 'Coal.png/32px-Coal.png',
+        'stone': 'Stone.png/32px-Stone.png',
+        'wood': 'Wood.png/32px-Wood.png',
+        'irongear': 'Iron_gear_wheel.png/32px-Iron_gear_wheel.png',
+        'iron gear wheel': 'Iron_gear_wheel.png/32px-Iron_gear_wheel.png',
+        'copper cable': 'Copper_cable.png/32px-Copper_cable.png',
+        'electronic circuit': 'Electronic_circuit.png/32px-Electronic_circuit.png',
+        'advanced circuit': 'Advanced_circuit.png/32px-Advanced_circuit.png',
+        'processing unit': 'Processing_unit.png/32px-Processing_unit.png',
+        'engine unit': 'Engine_unit.png/32px-Engine_unit.png',
+        'electric engine unit': 'Electric_engine_unit.png/32px-Electric_engine_unit.png',
+        'flying robot frame': 'Flying_robot_frame.png/32px-Flying_robot_frame.png',
+        'low density structure': 'Low_density_structure.png/32px-Low_density_structure.png',
+        'rocket fuel': 'Rocket_fuel.png/32px-Rocket_fuel.png',
+        'rocket part': 'Rocket_part.png/32px-Rocket_part.png',
+        'burner mining drill': 'Burner_mining_drill.png/32px-Burner_mining_drill.png',
+        'electric mining drill': 'Electric_mining_drill.png/32px-Electric_mining_drill.png',
+        'big mining drill': 'Big_mining_drill.png/32px-Big_mining_drill.png',
+        'offshore pump': 'Offshore_pump.png/32px-Offshore_pump.png',
+        'pumpjack': 'Pumpjack.png/32px-Pumpjack.png',
+        'stone furnace': 'Stone_furnace.png/32px-Stone_furnace.png',
+        'steel furnace': 'Steel_furnace.png/32px-Steel_furnace.png',
+        'electric furnace': 'Electric_furnace.png/32px-Electric_furnace.png',
+        'foundry': 'Foundry.png/32px-Foundry.png',
+        'recycler': 'Recycler.png/32px-Recycler.png',
+        'agricultural tower': 'Agricultural_tower.png/32px-Agricultural_tower.png',
+        'biochamber': 'Biochamber.png/32px-Biochamber.png',
+        'captive biter spawner': 'Captive_biter_spawner.png/32px-Captive_biter_spawner.png',
+        'assembling machine 1': 'Assembling_machine_1.png/32px-Assembling_machine_1.png',
+        'assembling machine 2': 'Assembling_machine_2.png/32px-Assembling_machine_2.png',
+        'assembling machine 3': 'Assembling_machine_3.png/32px-Assembling_machine_3.png',
+        'oil refinery': 'Oil_refinery.png/32px-Oil_refinery.png',
+        'chemical plant': 'Chemical_plant.png/32px-Chemical_plant.png',
+        'centrifuge': 'Centrifuge.png/32px-Centrifuge.png',
+        'electromagnetic plant': 'Electromagnetic_plant.png/32px-Electromagnetic_plant.png',
+        'cryogenic plant': 'Cryogenic_plant.png/32px-Cryogenic_plant.png',
+        'lab': 'Lab.png/32px-Lab.png',
+        'biolab': 'Biolab.png/32px-Biolab.png',
+        'lightning rod': 'Lightning_rod.png/32px-Lightning_rod.png',
+        'lightning collector': 'Lightning_collector.png/32px-Lightning_collector.png',
+        'heating tower': 'Heating_tower.png/32px-Heating_tower.png',
+        'beacon': 'Beacon.png/32px-Beacon.png',
+        'speed module': 'Speed_module.png/32px-Speed_module.png',
+        'speed module 2': 'Speed_module_2.png/32px-Speed_module_2.png',
+        'speed module 3': 'Speed_module_3.png/32px-Speed_module_3.png',
+        'efficiency module': 'Efficiency_module.png/32px-Efficiency_module.png',
+        'efficiency module 2': 'Efficiency_module_2.png/32px-Efficiency_module_2.png',
+        'efficiency module 3': 'Efficiency_module_3.png/32px-Efficiency_module_3.png',
+        'productivity module': 'Productivity_module.png/32px-Productivity_module.png',
+        'productivity module 2': 'Productivity_module_2.png/32px-Productivity_module_2.png',
+        'productivity module 3': 'Productivity_module_3.png/32px-Productivity_module_3.png',
+        'quality module': 'Quality_module.png/32px-Quality_module.png',
+        'quality module 2': 'Quality_module_2.png/32px-Quality_module_2.png',
+        'quality module 3': 'Quality_module_3.png/32px-Quality_module_3.png',
+        'water': 'Water.png/32px-Water.png',
+        'steam': 'Steam.png/32px-Steam.png',
+        'crude oil': 'Crude_oil.png/32px-Crude_oil.png',
+        'heavy oil': 'Heavy_oil.png/32px-Heavy_oil.png',
+        'light oil': 'Light_oil.png/32px-Light_oil.png',
+        'lubricant': 'Lubricant.png/32px-Lubricant.png',
+        'petroleum gas': 'Petroleum_gas.png/32px-Petroleum_gas.png',
+        'sulfuric acid': 'Sulfuric_acid.png/32px-Sulfuric_acid.png',
+        'thruster fuel': 'Thruster_fuel.png/32px-Thruster_fuel.png',
+        'thruster oxidizer': 'Thruster_oxidizer.png/32px-Thruster_oxidizer.png',
+        'lava': 'Lava.png/32px-Lava.png',
+        'molten iron': 'Molten_iron.png/32px-Molten_iron.png',
+        'molten copper': 'Molten_copper.png/32px-Molten_copper.png',
+        'holmium solution': 'Holmium_solution.png/32px-Holmium_solution.png',
+        'electrolyte': 'Electrolyte.png/32px-Electrolyte.png',
+        'ammoniacal solution': 'Ammoniacal_solution.png/32px-Ammoniacal_solution.png',
+        'ammonia': 'Ammonia.png/32px-Ammonia.png',
+        'fluorine': 'Fluorine.png/32px-Fluorine.png',
+        'fluoroketone hot': 'Fluoroketone_(hot).png/32px-Fluoroketone_(hot).png',
+        'fluoroketone cold': 'Fluoroketone_(cold).png/32px-Fluoroketone_(cold).png',
+        'lithium brine': 'Lithium_brine.png/32px-Lithium_brine.png',
+        'plasma': 'Plasma.png/32px-Plasma.png',
+        'uranium ore': 'Uranium_ore.png/32px-Uranium_ore.png',
+        'raw fish': 'Raw_fish.png/32px-Raw_fish.png',
+        'ice': 'Ice.png/32px-Ice.png',
+        'carbon': 'Carbon.png/32px-Carbon.png',
+        'coal synthesis': 'Coal_synthesis.png/32px-Coal_synthesis.png',
+        'water barrel': 'Water_barrel.png/32px-Water_barrel.png',
+        'crude oil barrel': 'Crude_oil_barrel.png/32px-Crude_oil_barrel.png',
+        'petroleum gas barrel': 'Petroleum_gas_barrel.png/32px-Petroleum_gas_barrel.png',
+        'light oil barrel': 'Light_oil_barrel.png/32px-Light_oil_barrel.png',
+        'heavy oil barrel': 'Heavy_oil_barrel.png/32px-Heavy_oil_barrel.png',
+        'lubricant barrel': 'Lubricant_barrel.png/32px-Lubricant_barrel.png',
+        'sulfuric acid barrel': 'Sulfuric_acid_barrel.png/32px-Sulfuric_acid_barrel.png',
+        'fluoroketone hot barrel': 'Fluoroketone_(hot)_barrel.png/32px-Fluoroketone_(hot)_barrel.png',
+        'fluoroketone cold barrel': 'Fluoroketone_(cold)_barrel.png/32px-Fluoroketone_(cold)_barrel.png',
+        'iron stick': 'Iron_stick.png/32px-Iron_stick.png',
+        'barrel': 'Barrel.png/32px-Barrel.png',
+        'nuclear fuel': 'Nuclear_fuel.png/32px-Nuclear_fuel.png',
+        'uranium processing': 'Uranium_processing.png/32px-Uranium_processing.png',
+        'nuclear fuel reprocessing': 'Nuclear_fuel_reprocessing.png/32px-Nuclear_fuel_reprocessing.png',
+        'kovarex enrichment process': 'Kovarex_enrichment_process.png/32px-Kovarex_enrichment_process.png',
+        'calcite': 'Calcite.png/32px-Calcite.png',
+        'tungsten ore': 'Tungsten_ore.png/32px-Tungsten_ore.png',
+        'tungsten carbide': 'Tungsten_carbide.png/32px-Tungsten_carbide.png',
+        'tungsten plate': 'Tungsten_plate.png/32px-Tungsten_plate.png',
+        'scrap': 'Scrap.png/32px-Scrap.png',
+        'holmium ore': 'Holmium_ore.png/32px-Holmium_ore.png',
+        'holmium plate': 'Holmium_plate.png/32px-Holmium_plate.png',
+        'superconductor': 'Superconductor.png/32px-Superconductor.png',
+        'supercapacitor': 'Supercapacitor.png/32px-Supercapacitor.png',
+        'yumako seed': 'Yumako_seed.png/32px-Yumako_seed.png',
+        'jellynut seed': 'Jellynut_seed.png/32px-Jellynut_seed.png',
+        'tree seed': 'Tree_seed.png/32px-Tree_seed.png',
+        'yumako': 'Yumako.png/32px-Yumako.png',
+        'jellynut': 'Jellynut.png/32px-Jellynut.png',
+        'iron bacteria': 'Iron_bacteria.png/32px-Iron_bacteria.png',
+        'copper bacteria': 'Copper_bacteria.png/32px-Copper_bacteria.png',
+        'spoilage': 'Spoilage.png/32px-Spoilage.png',
+        'nutrients': 'Nutrients.png/32px-Nutrients.png',
+        'bioflux': 'Bioflux.png/32px-Bioflux.png',
+        'yumako mash': 'Yumako_mash.png/32px-Yumako_mash.png',
+        'jelly': 'Jelly.png/32px-Jelly.png',
+        'carbon fiber': 'Carbon_fiber.png/32px-Carbon_fiber.png',
+        'biter egg': 'Biter_egg.png/32px-Biter_egg.png',
+        'pentapod egg': 'Pentapod_egg.png/32px-Pentapod_egg.png',
+        'lithium': 'Lithium.png/32px-Lithium.png',
+        'lithium plate': 'Lithium_plate.png/32px-Lithium_plate.png',
+        'quantum processor': 'Quantum_processor.png/32px-Quantum_processor.png',
+        'fusion power cell': 'Fusion_power_cell.png/32px-Fusion_power_cell.png',
+        'automation science pack': 'Automation_science_pack.png/32px-Automation_science_pack.png',
+        'logistic science pack': 'Logistic_science_pack.png/32px-Logistic_science_pack.png',
+        'military science pack': 'Military_science_pack.png/32px-Military_science_pack.png',
+        'chemical science pack': 'Chemical_science_pack.png/32px-Chemical_science_pack.png',
+        'production science pack': 'Production_science_pack.png/32px-Production_science_pack.png',
+        'utility science pack': 'Utility_science_pack.png/32px-Utility_science_pack.png',
+        'space science pack': 'Space_science_pack.png/32px-Space_science_pack.png',
+        'metallurgic science pack': 'Metallurgic_science_pack.png/32px-Metallurgic_science_pack.png',
+        'electromagnetic science pack': 'Electromagnetic_science_pack.png/32px-Electromagnetic_science_pack.png',
+        'agricultural science pack': 'Agricultural_science_pack.png/32px-Agricultural_science_pack.png',
+        'cryogenic science pack': 'Cryogenic_science_pack.png/32px-Cryogenic_science_pack.png',
+        'promethium science pack': 'Promethium_science_pack.png/32px-Promethium_science_pack.png',
+        'rocket silo': 'Rocket_silo.png/32px-Rocket_silo.png',
+        'cargo landing pad': 'Cargo_landing_pad.png/32px-Cargo_landing_pad.png',
+        'space platform foundation': 'Space_platform_foundation.png/32px-Space_platform_foundation.png',
+        'cargo bay': 'Cargo_bay.png/32px-Cargo_bay.png',
+        'asteroid collector': 'Asteroid_collector.png/32px-Asteroid_collector.png',
+        'crusher': 'Crusher.png/32px-Crusher.png',
+        'thruster': 'Thruster.png/32px-Thruster.png',
+        'space platform hub': 'Space_platform_hub.png/32px-Space_platform_hub.png',
+        'satellite': 'Satellite.png/32px-Satellite.png',
+        'space platform starter pack': 'Space_platform_hub.png/32px-Space_platform_hub.png',
+        'metallic asteroid chunk': 'Metallic_asteroid_chunk.png/32px-Metallic_asteroid_chunk.png',
+        'carbonic asteroid chunk': 'Carbonic_asteroid_chunk.png/32px-Carbonic_asteroid_chunk.png',
+        'oxide asteroid chunk': 'Oxide_asteroid_chunk.png/32px-Oxide_asteroid_chunk.png',
+        'promethium asteroid chunk': 'Promethium_asteroid_chunk.png/32px-Promethium_asteroid_chunk.png',
+        'nauvis': 'Nauvis.png/32px-Nauvis.png',
+        'vulcanus': 'Vulcanus.png/32px-Vulcanus.png',
+        'gleba': 'Gleba.png/32px-Gleba.png',
+        'fulgora': 'Fulgora.png/32px-Fulgora.png',
+        'aquilo': 'Aquilo.png/32px-Aquilo.png',
+        'solar system edge': 'Solar_system_edge.png/32px-Solar_system_edge.png',
+        'shattered planet': 'Shattered_planet.png/32px-Shattered_planet.png',
+        'pistol': 'Pistol.png/32px-Pistol.png',
+        'submachine gun': 'Submachine_gun.png/32px-Submachine_gun.png',
+        'railgun': 'Railgun.png/32px-Railgun.png',
+        'tesla gun': 'Tesla_gun.png/32px-Tesla_gun.png',
+        'shotgun': 'Shotgun.png/32px-Shotgun.png',
+        'combat shotgun': 'Combat_shotgun.png/32px-Combat_shotgun.png',
+        'rocket launcher': 'Rocket_launcher.png/32px-Rocket_launcher.png',
+        'flamethrower': 'Flamethrower.png/32px-Flamethrower.png',
+        'firearm magazine': 'Firearm_magazine.png/32px-Firearm_magazine.png',
+        'piercing rounds magazine': 'Piercing_rounds_magazine.png/32px-Piercing_rounds_magazine.png',
+        'uranium rounds magazine': 'Uranium_rounds_magazine.png/32px-Uranium_rounds_magazine.png',
+        'shotgun shells': 'Shotgun_shells.png/32px-Shotgun_shells.png',
+        'piercing shotgun shells': 'Piercing_shotgun_shells.png/32px-Piercing_shotgun_shells.png',
+        'cannon shell': 'Cannon_shell.png/32px-Cannon_shell.png',
+        'explosive cannon shell': 'Explosive_cannon_shell.png/32px-Explosive_cannon_shell.png',
+        'uranium cannon shell': 'Uranium_cannon_shell.png/32px-Uranium_cannon_shell.png',
+        'explosive uranium cannon shell': 'Explosive_uranium_cannon_shell.png/32px-Explosive_uranium_cannon_shell.png',
+        'artillery shell': 'Artillery_shell.png/32px-Artillery_shell.png',
+        'rocket': 'Rocket.png/32px-Rocket.png',
+        'explosive rocket': 'Explosive_rocket.png/32px-Explosive_rocket.png',
+        'atomic bomb': 'Atomic_bomb.png/32px-Atomic_bomb.png',
+        'capture bot rocket': 'Capture_bot_rocket.png/32px-Capture_bot_rocket.png',
+        'flamethrower ammo': 'Flamethrower_ammo.png/32px-Flamethrower_ammo.png',
+        'railgun ammo': 'Railgun_ammo.png/32px-Railgun_ammo.png',
+        'tesla ammo': 'Tesla_ammo.png/32px-Tesla_ammo.png',
+        'grenade': 'Grenade.png/32px-Grenade.png',
+        'cluster grenade': 'Cluster_grenade.png/32px-Cluster_grenade.png',
+        'poison capsule': 'Poison_capsule.png/32px-Poison_capsule.png',
+        'slowdown capsule': 'Slowdown_capsule.png/32px-Slowdown_capsule.png',
+        'defender capsule': 'Defender_capsule.png/32px-Defender_capsule.png',
+        'distractor capsule': 'Distractor_capsule.png/32px-Distractor_capsule.png',
+        'destroyer capsule': 'Destroyer_capsule.png/32px-Destroyer_capsule.png',
+        'light armor': 'Light_armor.png/32px-Light_armor.png',
+        'heavy armor': 'Heavy_armor.png/32px-Heavy_armor.png',
+        'modular armor': 'Modular_armor.png/32px-Modular_armor.png',
+        'power armor': 'Power_armor.png/32px-Power_armor.png',
+        'power armor mk 2': 'Power_armor_MK2.png/32px-Power_armor_MK2.png',
+        'mech armor': 'Mech_armor.png/32px-Mech_armor.png',
+        'portable solar panel': 'Portable_solar_panel.png/32px-Portable_solar_panel.png',
+        'portable fission reactor': 'Portable_fission_reactor.png/32px-Portable_fission_reactor.png',
+        'portable fusion reactor': 'Portable_fusion_reactor.png/32px-Portable_fusion_reactor.png',
+        'personal battery': 'Personal_battery.png/32px-Personal_battery.png',
+        'personal battery mk 2': 'Personal_battery_MK2.png/32px-Personal_battery_MK2.png',
+        'personal battery mk 3': 'Personal_battery_MK3.png/32px-Personal_battery_MK3.png',
+        'belt immunity equipment': 'Belt_immunity_equipment.png/32px-Belt_immunity_equipment.png',
+        'exoskeleton': 'Exoskeleton.png/32px-Exoskeleton.png',
+        'personal roboport': 'Personal_roboport.png/32px-Personal_roboport.png',
+        'personal roboport mk 2': 'Personal_roboport_MK2.png/32px-Personal_roboport_MK2.png',
+        'nightvision': 'Nightvision.png/32px-Nightvision.png',
+        'toolbelt equipment': 'Toolbelt_equipment.png/32px-Toolbelt_equipment.png',
+        'energy shield': 'Energy_shield.png/32px-Energy_shield.png',
+        'energy shield mk 2': 'Energy_shield_MK2.png/32px-Energy_shield_MK2.png',
+        'personal laser defense': 'Personal_laser_defense.png/32px-Personal_laser_defense.png',
+        'discharge defense': 'Discharge_defense.png/32px-Discharge_defense.png',
+        'discharge defense remote': 'Discharge_defense_remote.png/32px-Discharge_defense_remote.png',
+        'wall': 'Wall.png/32px-Wall.png',
+        'stone wall': 'Wall.png/32px-Wall.png',
+        'gate': 'Gate.png/32px-Gate.png',
+        'radar': 'Radar.png/32px-Radar.png',
+        'land mine': 'Land_mine.png/32px-Land_mine.png',
+        'gun turret': 'Gun_turret.png/32px-Gun_turret.png',
+        'laser turret': 'Laser_turret.png/32px-Laser_turret.png',
+        'flamethrower turret': 'Flamethrower_turret.png/32px-Flamethrower_turret.png',
+        'artillery turret': 'Artillery_turret.png/32px-Artillery_turret.png',
+        'artillery targeting remote': 'Artillery_targeting_remote.png/32px-Artillery_targeting_remote.png',
+        'rocket turret': 'Rocket_turret.png/32px-Rocket_turret.png',
+        'tesla turret': 'Tesla_turret.png/32px-Tesla_turret.png',
+        'railgun turret': 'Railgun_turret.png/32px-Railgun_turret.png',
+        'ice melting': 'Ice_melting.png/32px-Ice_melting.png',
+        'plastic bar': 'Plastic_bar.png/32px-Plastic_bar.png',
+        'casting low density structure': 'Casting_low_density_structure.png/32px-Casting_low_density_structure.png',
+        'sulfur': 'Sulfur.png/32px-Sulfur.png',
+        'metallic asteroid reprocessing': 'Metallic_asteroid_reprocessing.png/32px-Metallic_asteroid_reprocessing.png',
+        'metallic asteroid crushing': 'Metallic_asteroid_crushing.png/32px-Metallic_asteroid_crushing.png',
+        'carbonic asteroid reprocessing': 'Carbonic_asteroid_reprocessing.png/32px-Carbonic_asteroid_reprocessing.png',
+        'carbonic asteroid crushing': 'Carbonic_asteroid_crushing.png/32px-Carbonic_asteroid_crushing.png',
+        'oxide asteroid reprocessing': 'Oxide_asteroid_reprocessing.png/32px-Oxide_asteroid_reprocessing.png',
+        'oxide asteroid crushing': 'Oxide_asteroid_crushing.png/32px-Oxide_asteroid_crushing.png',
+        'advanced oxide asteroid crushing': 'Advanced_oxide_asteroid_crushing.png/32px-Advanced_oxide_asteroid_crushing.png',
+        'advanced carbonic asteroid crushing': 'Advanced_carbonic_asteroid_crushing.png/32px-Advanced_carbonic_asteroid_crushing.png',
+        'advanced thruster fuel': 'Advanced_thruster_fuel.png/32px-Advanced_thruster_fuel.png',
+        'advanced thruster oxidizer': 'Advanced_thruster_oxidizer.png/32px-Advanced_thruster_oxidizer.png',
+        'straight rail': 'Straight_rail.png/32px-Straight_rail.png',
+        'curved rail a': 'Curved_rail.png/32px-Curved_rail.png',
+        'curved rail b': 'Curved_rail.png/32px-Curved_rail.png',
+        'half diagonal rail': 'Curved_rail.png/32px-Curved_rail.png',
+        'solid fuel from light oil': 'Solid_fuel_from_light_oil.png/32px-Solid_fuel_from_light_oil.png',
+        'light oil cracking': 'Light_oil_cracking.png/32px-Light_oil_cracking.png',
+        'heavy oil cracking': 'Heavy_oil_cracking.png/32px-Heavy_oil_cracking.png',
+        'battery': 'Battery.png/32px-Battery.png',
+        'advanced oil processing': 'Advanced_oil_processing.png/32px-Advanced_oil_processing.png',
+        'uranium 238': 'Uranium-238.png/32px-Uranium-238.png',
+        'uranium 235': 'Uranium-235.png/32px-Uranium-235.png',
+        'explosives': 'Explosives.png/32px-Explosives.png',
+        'jellynut processing': 'Jellynut_processing.png/32px-Jellynut_processing.png',
+        'uranium fuel cell': 'Uranium_fuel_cell.png/32px-Uranium_fuel_cell.png',
+        'personal roboport equipment': 'Personal_roboport.png/32px-Personal_roboport.png',
+        'fission reactor equipment': 'Portable_fission_reactor.png/32px-Portable_fission_reactor.png',
+        'battery mk2 equipment': 'Personal_battery_MK2.png/32px-Personal_battery_MK2.png',
+        'battery equipment': 'Personal_battery.png/32px-Personal_battery.png',
+        'capture robot rocket': 'Capture_bot_rocket.png/32px-Capture_bot_rocket.png',
+    };
+    return 'https://wiki.factorio.com/images/thumb/' + FACTORIO_ITEMS_32px[itemName.replace(/-/g, ' ')];
+}
+    </script>
+    
+    <!-- Include pako for zlib compression/decompression -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+</body>
+</html>

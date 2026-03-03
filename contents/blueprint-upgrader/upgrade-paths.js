@@ -1,0 +1,56 @@
+const upgrade_paths = [
+    [ 'transport-belt', 'fast-transport-belt', 'express-transport-belt', 'turbo-transport-belt' ],
+    [ 'underground-belt', 'fast-underground-belt', 'express-underground-belt', 'turbo-underground-belt' ],
+    [ 'splitter', 'fast-splitter', 'express-splitter', 'turbo-splitter' ],
+
+    [ 'burner-inserter', 'inserter', 'fast-inserter', 'bulk-inserter', 'uncommon bulk-inserter', 'rare bulk-inserter', 'epic bulk-inserter', 'legendary bulk-inserter', 'stack-inserter', 'uncommon stack-inserter', 'rare stack-inserter', 'epic stack-inserter', 'legendary stack-inserter' ],
+    [ 'long-handed-inserter', 'uncommon long-handed-inserter', 'rare long-handed-inserter', 'epic long-handed-inserter', 'legendary long-handed-inserter' ],
+    [ 'pump', 'uncommon pump', 'rare pump', 'epic pump', 'legendary pump' ],
+
+    [ 'wooden-chest', 'iron-chest', 'steel-chest', 'uncommon steel-chest', 'rare steel-chest', 'epic steel-chest', 'legendary steel-chest' ],
+    [ 'small-electric-pole', 'medium-electric-pole', 'uncommon medium-electric-pole', 'rare medium-electric-pole', 'epic medium-electric-pole', 'legendary medium-electric-pole' ],
+    [ 'big-electric-pole', 'uncommon big-electric-pole', 'rare big-electric-pole', 'epic big-electric-pole', 'legendary big-electric-pole' ],
+    [ 'substation', 'uncommon substation', 'rare substation', 'epic substation', 'legendary substation' ],
+    [ 'roboport', 'uncommon roboport', 'rare roboport', 'epic roboport', 'legendary roboport' ],
+    [ 'beacon', 'uncommon beacon', 'rare beacon', 'epic beacon', 'legendary beacon' ],
+
+    [ 'artillery-wagon', 'uncommon artillery-wagon', 'rare artillery-wagon', 'epic artillery-wagon', 'legendary artillery-wagon' ],
+    [ 'car', 'tank', 'uncommon tank', 'rare tank', 'epic tank', 'legendary tank' ],
+    [ 'spidertron', 'uncommon spidertron', 'rare spidertron', 'epic spidertron', 'legendary spidertron' ],
+    [ 'logistic-robot', 'uncommon logistic-robot', 'rare logistic-robot', 'epic logistic-robot', 'legendary logistic-robot' ],
+    [ 'construction-robot', 'uncommon construction-robot', 'rare construction-robot', 'epic construction-robot', 'legendary construction-robot' ],
+    // logistic chests are missing
+    [ 'assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3', 'uncommon assembling-machine-3', 'rare assembling-machine-3', 'epic assembling-machine-3', 'legendary assembling-machine-3' ],
+    [ 'solar-panel', 'uncommon solar-panel', 'rare solar-panel', 'epic solar-panel', 'legendary solar-panel' ],
+
+    [ 'crusher', 'uncommon crusher', 'rare crusher', 'epic crusher', 'legendary crusher' ],
+    [ 'asteroid-collector', 'uncommon asteroid-collector', 'rare asteroid-collector', 'epic asteroid-collector', 'legendary asteroid-collector' ],
+    [ 'thruster', 'uncommon thruster', 'rare thruster', 'epic thruster', 'legendary thruster' ],
+    [ 'cargo-bay', 'uncommon cargo-bay', 'rare cargo-bay', 'epic cargo-bay', 'legendary cargo-bay' ],
+
+    [ 'stone-furnace', 'steel-furnace', 'uncommon steel-furnace', 'rare steel-furnace', 'epic steel-furnace', 'legendary steel-furnace' ],
+    [ 'electric-furnace', 'uncommon electric-furnace', 'rare electric-furnace', 'epic electric-furnace', 'legendary electric-furnace' ],
+    [ 'oil-refinery', 'uncommon oil-refinery', 'rare oil-refinery', 'epic oil-refinery', 'legendary oil-refinery' ],
+    [ 'chemical-plant', 'uncommon chemical-plant', 'rare chemical-plant', 'epic chemical-plant', 'legendary chemical-plant' ],
+    [ 'electromagnetic-plant', 'uncommon electromagnetic-plant', 'rare electromagnetic-plant', 'epic electromagnetic-plant', 'legendary electromagnetic-plant' ],
+    [ 'foundry', 'uncommon foundry', 'rare foundry', 'epic foundry', 'legendary foundry' ],
+    [ 'cryogenic-plant', 'uncommon cryogenic-plant', 'rare cryogenic-plant', 'epic cryogenic-plant', 'legendary cryogenic-plant' ],
+    [ 'lab', 'uncommon lab', 'rare lab', 'epic lab', 'legendary lab' ],
+    [ 'biolab', 'uncommon biolab', 'rare biolab', 'epic biolab', 'legendary biolab' ],
+
+    [ 'gun-turret', 'uncommon gun-turret', 'rare gun-turret', 'epic gun-turret', 'legendary gun-turret' ],
+    [ 'laser-turret', 'uncommon laser-turret', 'rare laser-turret', 'epic laser-turret', 'legendary laser-turret' ],
+    [ 'flamethrower-turret', 'uncommon flamethrower-turret', 'rare flamethrower-turret', 'epic flamethrower-turret', 'legendary flamethrower-turret' ],
+    [ 'artillery-turret', 'uncommon artillery-turret', 'rare artillery-turret', 'epic artillery-turret', 'legendary artillery-turret' ],
+    [ 'rocket-turret', 'uncommon rocket-turret', 'rare rocket-turret', 'epic rocket-turret', 'legendary rocket-turret' ],
+    [ 'tesla-turret', 'uncommon tesla-turret', 'rare tesla-turret', 'epic tesla-turret', 'legendary tesla-turret' ],
+    [ 'railgun-turret', 'uncommon railgun-turret', 'rare railgun-turret', 'epic railgun-turret', 'legendary railgun-turret' ],
+    [ 'land-mine', 'uncommon land-mine', 'rare land-mine', 'epic land-mine', 'legendary land-mine' ],
+    [ 'radar', 'uncommon radar', 'rare radar', 'epic radar', 'legendary radar' ],
+    [ 'stone-wall', 'uncommon stone-wall', 'rare stone-wall', 'epic stone-wall', 'legendary stone-wall' ],
+
+    [ 'productivity-module', 'uncommon productivity-module', 'productivity-module-2', 'rare productivity-module', 'uncommon productivity-module-2', 'epic productivity-module', 'rare productivity-module-2', 'productivity-module-3', 'legendary productivity-module', 'epic productivity-module-2', 'uncommon productivity-module-3', 'legendary productivity-module-2', 'rare productivity-module-3', 'epic productivity-module-3', 'legendary productivity-module-3' ],
+    [ 'speed-module', 'uncommon speed-module', 'speed-module-2', 'rare speed-module', 'epic speed-module', 'uncommon speed-module-2', 'rare speed-module-2', 'speed-module-3', 'legendary speed-module', 'epic speed-module-2', 'uncommon speed-module-3', 'legendary speed-module-2', 'rare speed-module-3', 'epic speed-module-3', 'legendary speed-module-3' ],
+    [ 'quality-module', 'uncommon quality-module', 'rare quality-module', 'epic quality-module', 'quality-module-2', 'quality-module-3', 'legendary quality-module', 'uncommon quality-module-2', 'uncommon quality-module-3', 'rare quality-module-2', 'epic quality-module-2', 'rare quality-module-3', 'epic quality-module-3', 'legendary quality-module-2', 'legendary quality-module-3' ],
+    [ 'efficiency-module', 'uncommon efficiency-module', 'efficiency-module-2', 'rare efficiency-module', 'efficiency-module-3', 'uncommon efficiency-module-2', 'epic efficiency-module', 'rare efficiency-module-2', 'uncommon efficiency-module-3', 'legendary efficiency-module', 'epic efficiency-module-2', 'rare efficiency-module-3', 'epic efficiency-module-3', 'legendary efficiency-module-2', 'legendary efficiency-module-3' ],
+];

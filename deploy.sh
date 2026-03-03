@@ -1,2 +1,10 @@
 #!/bin/bash
-rsync blueprint-editor.html vtt:puppeteer/static/blueprint-editor.html
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT_DIR"
+
+./build.sh
+
+rsync -avz --delete dist/ vtt:puppeteer/static/
