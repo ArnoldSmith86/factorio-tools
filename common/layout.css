@@ -49,6 +49,16 @@ h1 {
     font-size: 12px;
 }
 
+.tab-panel[data-tab="links"] a {
+    color: #4ec9b0;
+    text-decoration: none;
+}
+
+.tab-panel[data-tab="links"] a:hover {
+    color: #a8e6d8;
+    text-decoration: underline;
+}
+
 .footer-link {
     display: inline-flex;
     align-items: center;
