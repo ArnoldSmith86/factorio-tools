@@ -9,14 +9,38 @@
                 <th>Item</th>
                 <th>Start count</th>
                 <th>Stop count</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody id="automallTodoBody">
         </tbody>
     </table>
     <div class="button-group automall-actions">
-        <button id="automallEncodeBtn" type="button">Encode &amp; Copy Blueprint</button>
+        <button id="automallAddBtn" type="button">
+            <span class="material-icons">add</span>
+            <span>Add item</span>
+        </button>
+        <button id="automallEncodeBtn" type="button">
+            <span class="material-icons">content_copy</span>
+            <span>Encode &amp; Copy Blueprint</span>
+        </button>
     </div>
     <div id="automallStatus"></div>
+
+    <div id="automallItemPicker" class="automall-item-picker hidden">
+        <div class="automall-item-picker-backdrop"></div>
+        <div class="automall-item-picker-dialog">
+            <div class="automall-item-picker-header">
+                <span>Select item</span>
+                <button type="button" id="automallItemPickerClose" class="automall-item-picker-close">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="automall-item-picker-search">
+                <input type="text" id="automallItemSearch" placeholder="Search items...">
+            </div>
+            <div id="automallItemList" class="automall-item-list"></div>
+        </div>
+    </div>
 </div>
 

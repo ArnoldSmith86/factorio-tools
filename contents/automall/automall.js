@@ -208,71 +208,243 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    function renderTable() {
+    const addBtn = document.getElementById('automallAddBtn');
+    const encodeBtn = document.getElementById('automallEncodeBtn');
+    const statusEl = document.getElementById('automallStatus');
+    const picker = document.getElementById('automallItemPicker');
+    const pickerClose = document.getElementById('automallItemPickerClose');
+    const pickerSearch = document.getElementById('automallItemSearch');
+    const pickerList = document.getElementById('automallItemList');
+
+    function appendRow(item) {
+        const row = document.createElement('tr');
+        row.classList.add('automall-row');
+        row.draggable = true;
+        row.dataset.itemName = item.name;
+
+        const itemCell = document.createElement('td');
+        const img = document.createElement('img');
+        img.src = toImageUrl(item.name);
+        img.alt = item.name;
+        img.className = 'entity-image';
+        img.onerror = function () {
+            this.style.display = 'none';
+        };
+        const label = document.createElement('span');
+        label.textContent = ` ${item.name}`;
+        itemCell.appendChild(img);
+        itemCell.appendChild(label);
+        row.appendChild(itemCell);
+
+        const startCell = document.createElement('td');
+        const startInput = document.createElement('input');
+        startInput.type = 'number';
+        startInput.min = '0';
+        startInput.value = String(item.start_count);
+        startInput.className = 'automall-input automall-start';
+        startCell.appendChild(startInput);
+        row.appendChild(startCell);
+
+        const stopCell = document.createElement('td');
+        const stopInput = document.createElement('input');
+        stopInput.type = 'number';
+        stopInput.min = '0';
+        stopInput.value = String(item.stop_count);
+        stopInput.className = 'automall-input automall-stop';
+        stopCell.appendChild(stopInput);
+        row.appendChild(stopCell);
+
+        const actionsCell = document.createElement('td');
+        const actionsWrapper = document.createElement('div');
+        actionsWrapper.className = 'automall-row-actions';
+
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button';
+        upBtn.textContent = '↑';
+        upBtn.className = 'automall-row-btn';
+        upBtn.addEventListener('click', () => {
+            const prev = row.previousElementSibling;
+            if (prev) {
+                tbody.insertBefore(row, prev);
+            }
+        });
+
+        const downBtn = document.createElement('button');
+        downBtn.type = 'button';
+        downBtn.textContent = '↓';
+        downBtn.className = 'automall-row-btn';
+        downBtn.addEventListener('click', () => {
+            const next = row.nextElementSibling;
+            if (next) {
+                tbody.insertBefore(next, row);
+            }
+        });
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'automall-row-btn';
+        removeBtn.innerHTML = '<span class="material-icons">delete</span>';
+        removeBtn.addEventListener('click', () => {
+            tbody.removeChild(row);
+        });
+
+        actionsWrapper.appendChild(removeBtn);
+        actionsCell.appendChild(actionsWrapper);
+        row.appendChild(actionsCell);
+
+        tbody.appendChild(row);
+    }
+
+    function renderInitialTable() {
         tbody.innerHTML = '';
-        AUTOMALL_TODO.forEach((item, index) => {
-            const row = document.createElement('tr');
-
-            const itemCell = document.createElement('td');
-            const img = document.createElement('img');
-            img.src = toImageUrl(item.name);
-            img.alt = item.name;
-            img.className = 'entity-image';
-            img.onerror = function () {
-                this.style.display = 'none';
-            };
-            const label = document.createElement('span');
-            label.textContent = ` ${item.name}`;
-            itemCell.appendChild(img);
-            itemCell.appendChild(label);
-            row.appendChild(itemCell);
-
-            const startCell = document.createElement('td');
-            const startInput = document.createElement('input');
-            startInput.type = 'number';
-            startInput.min = '0';
-            startInput.value = String(item.start_count);
-            startInput.className = 'automall-input automall-start';
-            startInput.dataset.index = String(index);
-            startCell.appendChild(startInput);
-            row.appendChild(startCell);
-
-            const stopCell = document.createElement('td');
-            const stopInput = document.createElement('input');
-            stopInput.type = 'number';
-            stopInput.min = '0';
-            stopInput.value = String(item.stop_count);
-            stopInput.className = 'automall-input automall-stop';
-            stopInput.dataset.index = String(index);
-            stopCell.appendChild(stopInput);
-            row.appendChild(stopCell);
-
-            tbody.appendChild(row);
+        AUTOMALL_TODO.forEach(item => {
+            appendRow(item);
         });
     }
 
-    renderTable();
+    function buildTodoFromTable() {
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        return rows.map(row => {
+            const name = row.dataset.itemName || '';
+            const startInput = row.querySelector('.automall-start');
+            const stopInput = row.querySelector('.automall-stop');
+            const start = startInput ? parseInt(startInput.value, 10) || 0 : 0;
+            const stop = stopInput ? parseInt(stopInput.value, 10) || 0 : 0;
+            return {
+                name,
+                start_count: start,
+                stop_count: stop
+            };
+        });
+    }
 
-    const encodeBtn = document.getElementById('automallEncodeBtn');
-    const statusEl = document.getElementById('automallStatus');
+    function openPicker() {
+        if (!picker || !pickerList) return;
+        picker.classList.remove('hidden');
+        pickerSearch.value = '';
+        renderPickerList('');
+    }
+
+    function closePicker() {
+        if (!picker) return;
+        picker.classList.add('hidden');
+    }
+
+    function renderPickerList(filter) {
+        if (!pickerList) return;
+        pickerList.innerHTML = '';
+        const q = (filter || '').trim().toLowerCase();
+        automallSignalOrder.forEach(name => {
+            if (q && !name.toLowerCase().includes(q)) {
+                return;
+            }
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'automall-item-option';
+
+            const img = document.createElement('img');
+            img.src = toImageUrl(name);
+            img.alt = name;
+            img.onerror = function () {
+                this.style.display = 'none';
+            };
+
+            const label = document.createElement('span');
+            label.textContent = name;
+
+            option.appendChild(img);
+            option.appendChild(label);
+
+            option.addEventListener('click', () => {
+                appendRow({
+                    name,
+                    start_count: 0,
+                    stop_count: 0
+                });
+                closePicker();
+            });
+
+            pickerList.appendChild(option);
+        });
+    }
+
+    renderInitialTable();
+
+    let draggedRow = null;
+
+    tbody.addEventListener('dragstart', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLTableRowElement)) return;
+        draggedRow = target;
+        target.classList.add('dragging');
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+        }
+    });
+
+    tbody.addEventListener('dragend', (e) => {
+        const target = e.target;
+        if (target instanceof HTMLTableRowElement) {
+            target.classList.remove('dragging');
+        }
+        draggedRow = null;
+    });
+
+    tbody.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!draggedRow) return;
+        const afterElement = getDragAfterElement(tbody, e.clientY);
+        if (afterElement == null) {
+            tbody.appendChild(draggedRow);
+        } else if (afterElement !== draggedRow) {
+            tbody.insertBefore(draggedRow, afterElement);
+        }
+    });
+
+    function getDragAfterElement(container, y) {
+        const rows = [...container.querySelectorAll('.automall-row:not(.dragging)')];
+        let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+        for (const row of rows) {
+            const box = row.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                closest = { offset, element: row };
+            }
+        }
+        return closest.element;
+    }
+
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            openPicker();
+        });
+    }
+
+    if (pickerClose) {
+        pickerClose.addEventListener('click', () => {
+            closePicker();
+        });
+    }
+
+    if (picker && picker.firstElementChild) {
+        const backdrop = picker.querySelector('.automall-item-picker-backdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', () => {
+                closePicker();
+            });
+        }
+    }
+
+    if (pickerSearch) {
+        pickerSearch.addEventListener('input', () => {
+            renderPickerList(pickerSearch.value);
+        });
+    }
 
     if (encodeBtn && statusEl) {
         encodeBtn.addEventListener('click', async () => {
             try {
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                const currentTodo = rows.map((row, idx) => {
-                    const base = AUTOMALL_TODO[idx];
-                    const startInput = row.querySelector('.automall-start');
-                    const stopInput = row.querySelector('.automall-stop');
-                    const start = startInput ? parseInt(startInput.value, 10) || 0 : base.start_count;
-                    const stop = stopInput ? parseInt(stopInput.value, 10) || 0 : base.stop_count;
-                    return {
-                        name: base.name,
-                        start_count: start,
-                        stop_count: stop
-                    };
-                });
-
+                const currentTodo = buildTodoFromTable();
                 const blueprintData = generateAutomallBlueprint(currentTodo);
                 const blueprintString = encodeBlueprintData(blueprintData);
                 await navigator.clipboard.writeText(blueprintString);
