@@ -7,6 +7,7 @@
     <title>Factorio Blueprint Lab</title>
     <style>
         /* @INCLUDE "common/layout.css" */
+        /* @INCLUDE "common/tabs.css" */
         /* @INCLUDE "contents/blueprint-upgrader/blueprint-editor.css" */
         /* @INCLUDE "contents/module-table/module-overview.css" */
     </style>
@@ -14,9 +15,25 @@
 <body>
     <div class="container">
         <h1><img src="https://wiki.factorio.com/favicon.ico" style="height:32px"><img src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png"><img src="https://wiki.factorio.com/images/thumb/Lab.png/32px-Lab.png"> Factorio Blueprint Lab</h1>
-        
-        <!-- @INCLUDE "contents/blueprint-upgrader/blueprint-editor.html" -->
-        <!-- @INCLUDE "contents/module-table/module-overview.html" -->
+
+        <div class="tabs">
+            <button class="tab-link active" data-tab="blueprint-upgrader" type="button">
+                <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png" alt="">
+                <span class="tab-text"><span class="tab-title">Blueprint Upgrader</span><span class="tab-desc">Upgrade/downgrade + search/replace</span></span>
+            </button>
+            <button class="tab-link" data-tab="module-table" type="button">
+                <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="">
+                <span class="tab-text"><span class="tab-title">Module Table</span><span class="tab-desc">Compare module stats</span></span>
+            </button>
+        </div>
+        <div class="tab-panels">
+            <div class="tab-panel active" data-tab="blueprint-upgrader">
+                <!-- @INCLUDE "contents/blueprint-upgrader/blueprint-editor.html" -->
+            </div>
+            <div class="tab-panel" data-tab="module-table">
+                <!-- @INCLUDE "contents/module-table/module-overview.html" -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -27,6 +44,7 @@
 
         // @INCLUDE "contents/blueprint-upgrader/upgrade-paths.js"
         // @INCLUDE "common/images.js"
+        // @INCLUDE "common/tabs.js"
     </script>
     
     <!-- Include pako for zlib compression/decompression -->
