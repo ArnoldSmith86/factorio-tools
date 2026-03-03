@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png">
-    <title>Factorio Blueprint Lab</title>
+    <title>Arnold's Factorio Tools</title>
     <style>
         /* @INCLUDE "common/layout.css" */
         /* @INCLUDE "common/tabs.css" */
@@ -14,26 +14,38 @@
 </head>
 <body>
     <div class="container">
-        <h1><img src="https://wiki.factorio.com/favicon.ico" style="height:32px"><img src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png"><img src="https://wiki.factorio.com/images/thumb/Lab.png/32px-Lab.png"> Factorio Blueprint Lab</h1>
+        <header class="app-header">
+            <h1 class="app-title">Arnold's Factorio Tools</h1>
+            <div class="tabs">
+                <button class="tab-link active" data-tab="blueprint-upgrader" type="button">
+                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png" alt="">
+                    <span class="tab-text"><span class="tab-title">Blueprint Upgrader</span><span class="tab-desc">Upgrade/downgrade + search/replace</span></span>
+                </button>
+                <button class="tab-link" data-tab="module-table" type="button">
+                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="">
+                    <span class="tab-text"><span class="tab-title">Module Table</span><span class="tab-desc">Compare module stats</span></span>
+                </button>
+            </div>
+        </header>
 
-        <div class="tabs">
-            <button class="tab-link active" data-tab="blueprint-upgrader" type="button">
-                <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png" alt="">
-                <span class="tab-text"><span class="tab-title">Blueprint Upgrader</span><span class="tab-desc">Upgrade/downgrade + search/replace</span></span>
-            </button>
-            <button class="tab-link" data-tab="module-table" type="button">
-                <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="">
-                <span class="tab-text"><span class="tab-title">Module Table</span><span class="tab-desc">Compare module stats</span></span>
-            </button>
-        </div>
-        <div class="tab-panels">
-            <div class="tab-panel active" data-tab="blueprint-upgrader">
-                <!-- @INCLUDE "contents/blueprint-upgrader/blueprint-editor.html" -->
+        <main class="app-content">
+            <div class="tab-panels">
+                <div class="tab-panel active" data-tab="blueprint-upgrader">
+                    <!-- @INCLUDE "contents/blueprint-upgrader/blueprint-editor.html" -->
+                </div>
+                <div class="tab-panel" data-tab="module-table">
+                    <!-- @INCLUDE "contents/module-table/module-overview.html" -->
+                </div>
             </div>
-            <div class="tab-panel" data-tab="module-table">
-                <!-- @INCLUDE "contents/module-table/module-overview.html" -->
-            </div>
-        </div>
+        </main>
+
+        <footer class="app-footer">
+            <a class="footer-link" href="https://github.com/ArnoldSmith86/factorio-tools" target="_blank" rel="noreferrer">
+                <img class="footer-icon" src="https://github.githubassets.com/favicons/favicon.png" alt=""> GitHub
+            </a>
+            <span class="footer-sep">·</span>
+            <span class="footer-note">Public domain (CC0)</span>
+        </footer>
     </div>
 
     <script>

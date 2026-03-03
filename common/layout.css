@@ -12,11 +12,59 @@ body {
     margin: 0 auto;
 }
 
+.app-title,
 h1 {
     color: #569cd6;
     text-align: center;
     margin-bottom: 30px;
     font-size: 42px;
+}
+
+.app-header {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 12px 12px 0 0;
+    padding: 18px 18px 0 18px;
+}
+
+.app-header .app-title {
+    margin: 0 0 14px 0;
+}
+
+.app-content {
+    background-color: #2d2d30;
+    border: 1px solid #3e3e42;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 18px;
+}
+
+.app-footer {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: #9da3ad;
+    font-size: 12px;
+}
+
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #9da3ad;
+    text-decoration: none;
+}
+
+.footer-link:hover {
+    color: #d4d4d4;
+    text-decoration: underline;
+}
+
+.footer-icon {
+    width: 16px;
+    height: 16px;
 }
 
 .section {

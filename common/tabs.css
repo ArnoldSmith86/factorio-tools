@@ -2,17 +2,16 @@
 .tabs {
     display: flex;
     gap: 8px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #3e3e42;
+    margin-bottom: 0;
 }
 
 .tab-link {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: none;
+    background-color: #252526;
     border-radius: 10px 10px 0 0;
-    border: 1px solid transparent;
+    border: 1px solid #3e3e42;
     border-bottom: none;
     padding: 12px 16px;
     font-size: 16px;
@@ -21,9 +20,10 @@
 }
 
 .tab-link.active {
-    border-color: #3e3e42;
     background-color: #2d2d30;
     color: #4ec9b0;
+    position: relative;
+    top: 1px;
 }
 
 .tab-icon {
@@ -54,7 +54,7 @@
 }
 
 .tab-panels {
-    margin-top: -1px;
+    margin-top: 0;
 }
 
 .tab-panel {
