@@ -92,23 +92,7 @@ class BlueprintEditor {
         }
         
         try {
-            // Remove first character (version prefix)
-            const withoutPrefix = input.substring(1);
-            
-            // Base64 decode to binary string
-            const binaryString = atob(withoutPrefix);
-            
-            // Convert binary string to Uint8Array
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            
-            // Decompress using pako (with zlib header)
-            const decompressed = pako.inflate(bytes, { to: 'string' });
-            
-            // Parse JSON
-            this.blueprintData = JSON.parse(decompressed);
+            this.blueprintData = decodeBlueprintString(input);
             this.jsonString = JSON.stringify(this.blueprintData, null, 2);
             
             this.displayJson();
@@ -245,17 +229,7 @@ class BlueprintEditor {
             // Apply any active replacements
             const hadReplacements = this.applyReplacements();
             
-            // Convert JSON to string
-            const jsonString = JSON.stringify(this.blueprintData);
-            
-            // Compress using pako (with zlib header)
-            const compressed = pako.deflate(jsonString);
-            
-            // Convert Uint8Array to base64 directly
-            const base64 = btoa(String.fromCharCode.apply(null, compressed));
-            
-            // Add version prefix
-            const blueprintString = '0' + base64;
+            const blueprintString = encodeBlueprintData(this.blueprintData);
             
             // Copy to clipboard
             await navigator.clipboard.writeText(blueprintString);
@@ -281,17 +255,7 @@ class BlueprintEditor {
             // Apply any active replacements
             const hadReplacements = this.applyReplacements();
             
-            // Convert JSON to string
-            const jsonString = JSON.stringify(this.blueprintData);
-            
-            // Compress using pako (with zlib header)
-            const compressed = pako.deflate(jsonString);
-            
-            // Convert Uint8Array to base64 directly
-            const base64 = btoa(String.fromCharCode.apply(null, compressed));
-            
-            // Add version prefix
-            const blueprintString = '0' + base64;
+            const blueprintString = encodeBlueprintData(this.blueprintData);
             
             // Create download
             const blob = new Blob([blueprintString], { type: 'text/plain' });

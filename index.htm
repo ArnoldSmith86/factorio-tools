@@ -10,6 +10,7 @@
         /* @INCLUDE "common/tabs.css" */
         /* @INCLUDE "contents/blueprint-upgrader/blueprint-editor.css" */
         /* @INCLUDE "contents/module-table/module-overview.css" */
+        /* @INCLUDE "contents/automall/automall.css" */
     </style>
 </head>
 <body>
@@ -25,6 +26,10 @@
                     <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="">
                     <span class="tab-text"><span class="tab-title">Module Table</span><span class="tab-desc">Compare module stats</span></span>
                 </button>
+                <button class="tab-link" data-tab="automall" type="button">
+                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Buffer_chest.png/32px-Buffer_chest.png" alt="">
+                    <span class="tab-text"><span class="tab-title">Automall</span><span class="tab-desc">Automall combinator helper</span></span>
+                </button>
             </div>
         </header>
 
@@ -35,6 +40,9 @@
                 </div>
                 <div class="tab-panel" data-tab="module-table">
                     <!-- @INCLUDE "contents/module-table/module-overview.html" -->
+                </div>
+                <div class="tab-panel" data-tab="automall">
+                    <!-- @INCLUDE "contents/automall/automall.html" -->
                 </div>
             </div>
         </main>
@@ -49,6 +57,7 @@
     </div>
 
     <script>
+        // @INCLUDE "common/blueprint-string.js"
         // @INCLUDE "contents/module-table/generate-table.js"
 
         // @INCLUDE "contents/blueprint-upgrader/blueprint-editor.js"
@@ -57,6 +66,12 @@
         // @INCLUDE "contents/blueprint-upgrader/upgrade-paths.js"
         // @INCLUDE "common/images.js"
         // @INCLUDE "common/tabs.js"
+
+        // @INCLUDE "contents/automall/signal-order.js"
+        // @INCLUDE "contents/automall/todo.js"
+        // @INCLUDE "contents/automall/todo-test.js"
+        // @INCLUDE "contents/automall/automall-blueprint-data.js"
+        // @INCLUDE "contents/automall/automall.js"
     </script>
     
     <!-- Include pako for zlib compression/decompression -->

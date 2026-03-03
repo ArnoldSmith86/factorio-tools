@@ -1,0 +1,286 @@
+function generateAutomallBlueprint(todoList) {
+    if (!Array.isArray(todoList)) {
+        throw new Error('todo list must be an array');
+    }
+
+    const result = JSON.parse(JSON.stringify(AUTOMALL_BASE_BLUEPRINT));
+
+    const filters = [];
+    const conditions = [];
+    const itemValues = {};
+    let neededChecks = {};
+    let nextVirtualSignal = 1;
+
+    function ensureFilter(name, virtualSignal) {
+        if (itemValues[name] !== undefined) {
+            return;
+        }
+
+        itemValues[name] = Object.keys(itemValues).length * 2 + 1;
+        const signal = {
+            index: 1 + (itemValues[name] - 1) / 2,
+            name,
+            quality: "normal",
+            comparator: "=",
+            count: itemValues[name]
+        };
+        if (virtualSignal) {
+            signal.type = "virtual";
+        }
+        filters.push(signal);
+        return signal;
+    }
+
+    function startCondition(name, count) {
+        return {
+            first_signal: { name },
+            constant: count,
+            first_signal_networks: {
+                red: false,
+                green: true
+            }
+        };
+    }
+
+    function stopCondition(name, count) {
+        return {
+            first_signal: { name },
+            constant: count,
+            first_signal_networks: {
+                red: false,
+                green: true
+            }
+        };
+    }
+
+    function enableCondition(name, offset) {
+        return {
+            first_signal: {
+                type: "virtual",
+                name: "signal-each"
+            },
+            constant: itemValues[name] + (offset || 0),
+            comparator: "=",
+            first_signal_networks: {
+                red: true,
+                green: false
+            },
+            compare_type: "and"
+        };
+    }
+
+    function checkCondition(name) {
+        const signal = { name };
+        if (name.startsWith("signal-")) {
+            signal.type = "virtual";
+        }
+        return {
+            first_signal: signal,
+            constant: itemValues[name] + (signal.type === "virtual" ? 1 : 0),
+            comparator: "=",
+            first_signal_networks: {
+                red: true,
+                green: false
+            },
+            compare_type: "and"
+        };
+    }
+
+    function checkCountCondition(name, count) {
+        const signal = { name };
+        if (name.startsWith("signal-")) {
+            signal.type = "virtual";
+        }
+        return {
+            first_signal: signal,
+            constant: count,
+            comparator: ">=",
+            first_signal_networks: {
+                red: false,
+                green: true
+            },
+            compare_type: "and"
+        };
+    }
+
+    for (const t of todoList) {
+        ensureFilter(t.name);
+        if (neededChecks[t.name] !== undefined) {
+            const virtualName = `signal-${nextVirtualSignal}`;
+            ensureFilter(virtualName, true);
+            conditions.push({
+                first_signal: {
+                    type: "virtual",
+                    name: "signal-each"
+                },
+                constant: itemValues[virtualName],
+                comparator: ">=",
+                first_signal_networks: {
+                    red: true,
+                    green: false
+                }
+            });
+            conditions.push({
+                first_signal: {
+                    type: "virtual",
+                    name: "signal-each"
+                },
+                constant: itemValues[virtualName] + 1,
+                comparator: "<=",
+                first_signal_networks: {
+                    red: true,
+                    green: false
+                },
+                compare_type: "and"
+            });
+            for (const [name, count] of Object.entries(neededChecks)) {
+                conditions.push(checkCountCondition(name, count));
+            }
+            neededChecks = { [virtualName]: itemValues[virtualName] };
+            nextVirtualSignal++;
+        }
+        conditions.push(stopCondition(t.name, t.stop_count), enableCondition(t.name, 1));
+        for (const name in neededChecks) {
+            if (
+                automallSignalOrder.indexOf(name) > automallSignalOrder.indexOf(t.name) ||
+                automallSignalOrder.indexOf(name) === -1
+            ) {
+                conditions.push(checkCondition(name));
+            }
+        }
+        conditions.push(startCondition(t.name, t.start_count), enableCondition(t.name));
+        for (const name in neededChecks) {
+            if (
+                automallSignalOrder.indexOf(name) > automallSignalOrder.indexOf(t.name) ||
+                automallSignalOrder.indexOf(name) === -1
+            ) {
+                conditions.push(checkCondition(name));
+            }
+        }
+        neededChecks[t.name] = t.start_count;
+    }
+
+    result.blueprint.entities[5].control_behavior.decider_conditions.conditions = conditions;
+    result.blueprint.entities[6].control_behavior.sections.sections[0].filters = filters;
+
+    const descLines = todoList.map(t => `[item=${t.name}] ${t.start_count} - ${t.stop_count}`);
+    let desc = descLines.join("\n");
+    if (desc.length > 500) {
+        const ellipsisLen = n =>
+            ("\n[ ... " + n + " more " + (n === 1 ? "entry" : "entries") + " ... ]\n").length;
+        const maxContent = 500 - ellipsisLen(99);
+        let startIdx = 0;
+        let startLen = 0;
+        while (startIdx < descLines.length) {
+            const add = (startIdx ? 1 : 0) + descLines[startIdx].length;
+            if (startLen + add > maxContent / 2) break;
+            startLen += add;
+            startIdx++;
+        }
+        let endIdx = descLines.length;
+        let endLen = 0;
+        while (endIdx > startIdx) {
+            const add = (endLen ? 1 : 0) + descLines[endIdx - 1].length;
+            if (startLen + endLen + add + ellipsisLen(endIdx - startIdx) > 500) break;
+            endLen += add;
+            endIdx--;
+        }
+        const omitted = endIdx - startIdx;
+        const ellipsis =
+            "\n[ ... " +
+            omitted +
+            " more " +
+            (omitted === 1 ? "entry" : "entries") +
+            " ... ]\n";
+        desc =
+            descLines.slice(0, startIdx).join("\n") +
+            ellipsis +
+            descLines.slice(endIdx).join("\n");
+    }
+    result.blueprint.entities[5].player_description = desc;
+
+    return result;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('automallTodoBody');
+    if (!tbody || !Array.isArray(AUTOMALL_TODO)) {
+        return;
+    }
+
+    function renderTable() {
+        tbody.innerHTML = '';
+        AUTOMALL_TODO.forEach((item, index) => {
+            const row = document.createElement('tr');
+
+            const itemCell = document.createElement('td');
+            const img = document.createElement('img');
+            img.src = toImageUrl(item.name);
+            img.alt = item.name;
+            img.className = 'entity-image';
+            img.onerror = function () {
+                this.style.display = 'none';
+            };
+            const label = document.createElement('span');
+            label.textContent = ` ${item.name}`;
+            itemCell.appendChild(img);
+            itemCell.appendChild(label);
+            row.appendChild(itemCell);
+
+            const startCell = document.createElement('td');
+            const startInput = document.createElement('input');
+            startInput.type = 'number';
+            startInput.min = '0';
+            startInput.value = String(item.start_count);
+            startInput.className = 'automall-input automall-start';
+            startInput.dataset.index = String(index);
+            startCell.appendChild(startInput);
+            row.appendChild(startCell);
+
+            const stopCell = document.createElement('td');
+            const stopInput = document.createElement('input');
+            stopInput.type = 'number';
+            stopInput.min = '0';
+            stopInput.value = String(item.stop_count);
+            stopInput.className = 'automall-input automall-stop';
+            stopInput.dataset.index = String(index);
+            stopCell.appendChild(stopInput);
+            row.appendChild(stopCell);
+
+            tbody.appendChild(row);
+        });
+    }
+
+    renderTable();
+
+    const encodeBtn = document.getElementById('automallEncodeBtn');
+    const statusEl = document.getElementById('automallStatus');
+
+    if (encodeBtn && statusEl) {
+        encodeBtn.addEventListener('click', async () => {
+            try {
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const currentTodo = rows.map((row, idx) => {
+                    const base = AUTOMALL_TODO[idx];
+                    const startInput = row.querySelector('.automall-start');
+                    const stopInput = row.querySelector('.automall-stop');
+                    const start = startInput ? parseInt(startInput.value, 10) || 0 : base.start_count;
+                    const stop = stopInput ? parseInt(stopInput.value, 10) || 0 : base.stop_count;
+                    return {
+                        name: base.name,
+                        start_count: start,
+                        stop_count: stop
+                    };
+                });
+
+                const blueprintData = generateAutomallBlueprint(currentTodo);
+                const blueprintString = encodeBlueprintData(blueprintData);
+                await navigator.clipboard.writeText(blueprintString);
+                statusEl.innerHTML = '<div class="success">Blueprint encoded and copied to clipboard.</div>';
+            } catch (e) {
+                statusEl.innerHTML = `<div class="error">Failed to encode blueprint: ${e.message}</div>`;
+            }
+        });
+    }
+});
+

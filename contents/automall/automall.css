@@ -1,0 +1,39 @@
+.automall {
+    padding: 16px;
+}
+
+.automall-intro {
+    margin-bottom: 12px;
+    color: #cccccc;
+}
+
+.automall-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+}
+
+.automall-table th,
+.automall-table td {
+    border: 1px solid #3e3e42;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.automall-table th {
+    background-color: #2d2d30;
+}
+
+.automall-input {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #1e1e1e;
+    border: 1px solid #3e3e42;
+    color: #d4d4d4;
+    padding: 2px 4px;
+}
+
+.automall-actions {
+    margin-top: 8px;
+}
+
