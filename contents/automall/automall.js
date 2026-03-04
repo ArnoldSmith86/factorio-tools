@@ -251,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const addBtn = document.getElementById('automallAddBtn');
+    const clearBtn = document.getElementById('automallClearBtn');
     const encodeBtn = document.getElementById('automallEncodeBtn');
     const statusEl = document.getElementById('automallStatus');
     const inputsEl = document.getElementById('automallInputs');
@@ -258,6 +259,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const pickerClose = document.getElementById('automallItemPickerClose');
     const pickerSearch = document.getElementById('automallItemSearch');
     const pickerList = document.getElementById('automallItemList');
+
+    function addEmptyStateRow() {
+        if (tbody.querySelector('.automall-empty-row')) return;
+        const tr = document.createElement('tr');
+        tr.className = 'automall-empty-row';
+        tr.innerHTML = '<td colspan="4"><span class="automall-empty-message"><span class="material-icons">inbox</span>No items yet. Click Add item to build your list.</span></td>';
+        tbody.appendChild(tr);
+    }
+
+    function removeEmptyStateRow() {
+        tbody.querySelector('.automall-empty-row')?.remove();
+    }
 
     function renderRequiredInputs() {
         if (!inputsEl) return;
@@ -373,6 +386,9 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.innerHTML = '<span class="material-icons">delete</span>';
         removeBtn.addEventListener('click', () => {
             tbody.removeChild(row);
+            if (tbody.querySelectorAll('.automall-row').length === 0) {
+                addEmptyStateRow();
+            }
             renderRequiredInputs();
         });
 
@@ -380,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         actionsCell.appendChild(actionsWrapper);
         row.appendChild(actionsCell);
 
+        removeEmptyStateRow();
         tbody.appendChild(row);
 
         renderRequiredInputs();
@@ -387,14 +404,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderInitialTable() {
         tbody.innerHTML = '';
-        AUTOMALL_TODO.forEach(item => {
-            appendRow(item);
-        });
+        if (AUTOMALL_TODO.length === 0) {
+            addEmptyStateRow();
+        } else {
+            AUTOMALL_TODO.forEach(item => {
+                appendRow(item);
+            });
+        }
+        renderRequiredInputs();
+    }
+
+    function clearTable() {
+        tbody.innerHTML = '';
+        addEmptyStateRow();
         renderRequiredInputs();
     }
 
     function buildTodoFromTable() {
-        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const rows = Array.from(tbody.querySelectorAll('tr.automall-row'));
         return rows.map(row => {
             const name = row.dataset.itemName || '';
             const startInput = row.querySelector('.automall-start');
@@ -414,6 +441,9 @@ document.addEventListener('DOMContentLoaded', () => {
         picker.classList.remove('hidden');
         pickerSearch.value = '';
         renderPickerList('');
+        requestAnimationFrame(() => {
+            pickerSearch?.focus();
+        });
     }
 
     function closePicker() {
@@ -447,10 +477,13 @@ document.addEventListener('DOMContentLoaded', () => {
             option.appendChild(label);
 
             option.addEventListener('click', () => {
+                const stack = AUTOMALL_STACK_SIZES[name] || 50;
+                const stop_count = stack;
+                const start_count = Math.max(1, Math.floor(stack * 0.1));
                 appendRow({
                     name,
-                    start_count: 0,
-                    stop_count: 0
+                    start_count,
+                    stop_count
                 });
                 closePicker();
             });
@@ -512,6 +545,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            clearTable();
+        });
+    }
+
     if (pickerClose) {
         pickerClose.addEventListener('click', () => {
             closePicker();
@@ -530,6 +569,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pickerSearch) {
         pickerSearch.addEventListener('input', () => {
             renderPickerList(pickerSearch.value);
+        });
+        pickerSearch.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const first = pickerList?.querySelector('.automall-item-option');
+            if (first) first.click();
         });
     }
 

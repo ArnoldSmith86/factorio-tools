@@ -63,10 +63,42 @@
 
 .automall-actions {
     margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
 .automall-actions button {
-    margin-right: 8px;
+    margin-right: 0;
+}
+
+.automall-btn-secondary {
+    background-color: #3c3c3c;
+    border-color: #505050;
+    color: #cccccc;
+}
+
+.automall-btn-secondary:hover {
+    background-color: #505050;
+    border-color: #5a5a5a;
+}
+
+.automall-empty-row td {
+    padding: 32px 16px;
+    text-align: center;
+    color: #858585;
+    font-style: italic;
+    border: 1px solid #3e3e42;
+    background-color: #252526;
+}
+
+.automall-empty-row .automall-empty-message {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-style: normal;
+    color: #a0a0a0;
 }
 
 .material-icons {
