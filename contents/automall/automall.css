@@ -7,6 +7,34 @@
     color: #cccccc;
 }
 
+#automallInputs {
+    margin-bottom: 8px;
+    color: #d4d4d4;
+    font-size: 13px;
+}
+
+.automall-input-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.automall-input-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    background-color: #252526;
+    border-radius: 4px;
+    border: 1px solid #3e3e42;
+}
+
+.automall-input-chip img {
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+}
+
 .automall-table {
     width: 100%;
     border-collapse: collapse;

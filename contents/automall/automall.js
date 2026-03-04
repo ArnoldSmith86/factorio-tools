@@ -1,3 +1,31 @@
+function getRequiredInputsFromTodo(todo) {
+    const producedSoFar = new Set();
+    const requiredInputs = new Set();
+
+    for (const entry of todo) {
+        const recipe = AUTOMALL_RECIPES[entry.name];
+        if (Array.isArray(recipe)) {
+            for (const ingredient of recipe) {
+                if (!producedSoFar.has(ingredient)) {
+                    requiredInputs.add(ingredient);
+                }
+            }
+        }
+        if (entry.name) {
+            producedSoFar.add(entry.name);
+        }
+    }
+
+    return Array.from(requiredInputs).sort((a, b) => {
+        const ia = automallSignalOrder.indexOf(a);
+        const ib = automallSignalOrder.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+    });
+}
+
 function generateAutomallBlueprint(todoList) {
     if (!Array.isArray(todoList)) {
         throw new Error('todo list must be an array');
@@ -199,6 +227,20 @@ function generateAutomallBlueprint(todoList) {
     }
     result.blueprint.entities[5].player_description = desc;
 
+    const requiredInputs = getRequiredInputsFromTodo(todoList);
+    const bufferChest = result.blueprint.entities[1];
+    bufferChest.request_filters.sections[0].filters = requiredInputs.map((name, i) => {
+        const stack = AUTOMALL_STACK_SIZES[name] || 50;
+        const count = Math.max(1, stack - 3);
+        return {
+            index: i + 1,
+            name,
+            quality: "normal",
+            comparator: "=",
+            count
+        };
+    });
+
     return result;
 }
 
@@ -211,10 +253,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = document.getElementById('automallAddBtn');
     const encodeBtn = document.getElementById('automallEncodeBtn');
     const statusEl = document.getElementById('automallStatus');
+    const inputsEl = document.getElementById('automallInputs');
     const picker = document.getElementById('automallItemPicker');
     const pickerClose = document.getElementById('automallItemPickerClose');
     const pickerSearch = document.getElementById('automallItemSearch');
     const pickerList = document.getElementById('automallItemList');
+
+    function renderRequiredInputs() {
+        if (!inputsEl) return;
+        const currentTodo = buildTodoFromTable();
+        const inputs = getRequiredInputsFromTodo(currentTodo);
+
+        if (!inputs.length) {
+            inputsEl.textContent = 'No external inputs required for this todo list.';
+            return;
+        }
+
+        const wrapper = document.createElement('div');
+        const label = document.createElement('div');
+        label.textContent = 'Required base inputs (not crafted earlier in this list):';
+        const list = document.createElement('div');
+        list.className = 'automall-input-list';
+
+        inputs.forEach(name => {
+            const chip = document.createElement('div');
+            chip.className = 'automall-input-chip';
+
+            const img = document.createElement('img');
+            img.src = toImageUrl(name);
+            img.alt = name;
+            img.onerror = function () {
+                this.style.display = 'none';
+            };
+
+            const span = document.createElement('span');
+            span.textContent = name;
+
+            chip.appendChild(img);
+            chip.appendChild(span);
+            list.appendChild(chip);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(list);
+
+        inputsEl.innerHTML = '';
+        inputsEl.appendChild(wrapper);
+    }
 
     function appendRow(item) {
         const row = document.createElement('tr');
@@ -266,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const prev = row.previousElementSibling;
             if (prev) {
                 tbody.insertBefore(row, prev);
+                renderRequiredInputs();
             }
         });
 
@@ -277,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const next = row.nextElementSibling;
             if (next) {
                 tbody.insertBefore(next, row);
+                renderRequiredInputs();
             }
         });
 
@@ -286,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.innerHTML = '<span class="material-icons">delete</span>';
         removeBtn.addEventListener('click', () => {
             tbody.removeChild(row);
+            renderRequiredInputs();
         });
 
         actionsWrapper.appendChild(removeBtn);
@@ -293,6 +381,8 @@ document.addEventListener('DOMContentLoaded', () => {
         row.appendChild(actionsCell);
 
         tbody.appendChild(row);
+
+        renderRequiredInputs();
     }
 
     function renderInitialTable() {
@@ -300,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         AUTOMALL_TODO.forEach(item => {
             appendRow(item);
         });
+        renderRequiredInputs();
     }
 
     function buildTodoFromTable() {
@@ -388,6 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
             target.classList.remove('dragging');
         }
         draggedRow = null;
+        renderRequiredInputs();
     });
 
     tbody.addEventListener('dragover', (e) => {
