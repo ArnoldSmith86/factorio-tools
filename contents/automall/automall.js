@@ -1,5 +1,16 @@
 const automallSignalOrder = data.icons.map((i) => i.id);
 
+// curl -L https://github.com/factoriolab/factoriolab/raw/refs/heads/main/src/data/spa/data.json | jq -r '[.recipes[] | select(.category != "technology" and .category != "fluids" and .category != "other") | {(.id): (.in | keys)}] | add | ...'
+const AUTOMALL_RECIPES = (() => {
+    const out = {};
+    data.recipes.forEach((r) => {
+        if (r.category !== 'technology' && r.category !== 'fluids' && r.category !== 'other') {
+            out[r.id] = Object.keys(r.in || {});
+        }
+    });
+    return out;
+})();
+
 function getRequiredInputsFromTodo(todo) {
     const producedSoFar = new Set();
     const requiredInputs = new Set();
