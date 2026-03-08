@@ -1,0 +1,127 @@
+.belt-cost {
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+.belt-cost h3 {
+    color: #4ec9b0;
+    margin-bottom: 8px;
+}
+
+.belt-cost-intro {
+    color: #9da3ad;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.belt-cost-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.belt-cost-table th {
+    background-color: #2d2d30;
+    color: #4ec9b0;
+    font-weight: bold;
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #3e3e42;
+}
+
+.belt-cost-table th:first-child {
+    text-align: center;
+    width: 48px;
+}
+
+.belt-cost-table th.belt-cost-machine-th .belt-cost-th-icon {
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.belt-cost-table .belt-cost-subhead th {
+    font-weight: normal;
+    font-size: 12px;
+    color: #9da3ad;
+    padding: 4px 8px;
+}
+
+.belt-cost-table .belt-cost-subhead th .belt-cost-th-icon {
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.belt-cost-table .belt-cost-th-icon {
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.belt-cost-table td {
+    border: 1px solid #3e3e42;
+    padding: 8px 10px;
+    vertical-align: middle;
+}
+
+.belt-cost-table tr:nth-child(even) {
+    background-color: #2a2a2a;
+}
+
+.belt-cost-cell-belt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.belt-cost-cell-belt .entity-image {
+    flex-shrink: 0;
+}
+
+.belt-cost-cell-resource {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.belt-cost-cell-resource .entity-image {
+    flex-shrink: 0;
+}
+
+.belt-cost-cell-resource.empty {
+    color: #6e6e6e;
+}
+
+.belt-cost-formula-tooltip-popup {
+    display: none;
+    position: fixed;
+    max-width: 90vw;
+    max-height: 50vh;
+    overflow: auto;
+    padding: 10px 14px;
+    background: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 8px;
+    color: #d4d4d4;
+    font-size: 12px;
+    line-height: 1.5;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    pointer-events: none;
+}
+
+.belt-cost-formula-tooltip-popup .belt-cost-formula-tooltip {
+    display: block;
+}
+
+.belt-cost-tt-line {
+    margin: 2px 0;
+}
+
+.belt-cost-tt-line-icons {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+}
+
+.belt-cost-tt-line-icons .belt-cost-tt-icon {
+    flex-shrink: 0;
+}
