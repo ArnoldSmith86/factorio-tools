@@ -1,1 +1,3 @@
 These files come from https://github.com/factoriolab/factoriolab/tree/main/src/data/spa and https://github.com/factoriolab/factoriolab/blob/main/src/assets/icons/icons.webp. Factoriolab is MIT licence but the data and icons come from Factorio.
+
+**planets/** — One 64×64 (or smaller) PNG per planet/surface name for the Planet Tier list. Vanilla/Space Age planets (nauvis, vulcanus, gleba, fulgora, aquilo, solar-system-edge, shattered-planet) use sprites from `icons.webp`; mod planets use these files. Populate by running `contents/planet-tier/extract_planet_icons.py` (reads from `mods/*.zip`, writes here and to `icon-test/`). Build copies `data/planets/*.png` to `dist/planets/`.

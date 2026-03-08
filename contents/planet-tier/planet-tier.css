@@ -1,0 +1,105 @@
+.planet-tier {
+    margin-top: 20px;
+}
+
+.planet-tier h3 {
+    color: #4ec9b0;
+    margin-bottom: 8px;
+}
+
+.planet-tier-intro {
+    color: #9da3ad;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.planet-tier-rows {
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.planet-tier-row {
+    display: flex;
+    min-height: 68px;
+    border-bottom: 1px solid #3e3e42;
+}
+
+.planet-tier-row:last-child {
+    border-bottom: none;
+}
+
+.planet-tier-label {
+    width: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: #fff;
+}
+
+.planet-tier-row[data-tier="U"] .planet-tier-label {
+    background: #3e3e42;
+    color: #9da3ad;
+    font-size: 14px;
+}
+
+.planet-tier-row[data-tier="S"] .planet-tier-label { background: #e67e22; }
+.planet-tier-row[data-tier="A"] .planet-tier-label { background: #d4a017; }
+.planet-tier-row[data-tier="B"] .planet-tier-label { background: #e8c547; color: #1e1e1e; }
+.planet-tier-row[data-tier="C"] .planet-tier-label { background: #27ae60; }
+.planet-tier-row[data-tier="D"] .planet-tier-label { background: #3498db; }
+.planet-tier-row[data-tier="E"] .planet-tier-label { background: #9b59b6; }
+.planet-tier-row[data-tier="F"] .planet-tier-label { background: #e91e8c; }
+
+.planet-tier-slot {
+    flex: 1;
+    min-height: 64px;
+    padding: 4px 8px;
+    background: #252526;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    align-content: center;
+}
+
+.planet-tier-row.drag-over .planet-tier-slot {
+    background: #2d2d30;
+}
+
+.planet-tier-chip {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    padding: 0;
+    background: #2d2d30;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+    cursor: grab;
+    user-select: none;
+}
+
+.planet-tier-chip:active {
+    cursor: grabbing;
+}
+
+.planet-tier-chip.dragging {
+    opacity: 0.6;
+}
+
+.planet-tier-chip .planet-tier-icon {
+    display: block;
+    width: 64px;
+    height: 64px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+}
+
+.planet-tier-chip .planet-tier-icon.img {
+    background-size: contain;
+    background-repeat: no-repeat;
+}

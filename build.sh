@@ -22,3 +22,5 @@ awk '
   }
 ' index.htm > dist/index.htm
 cp data/*.webp dist/
+mkdir -p dist/planets
+cp data/planets/*.png dist/planets/

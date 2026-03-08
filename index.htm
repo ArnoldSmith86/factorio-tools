@@ -13,6 +13,7 @@
         /* @INCLUDE "contents/module-table/module-overview.css" */
         /* @INCLUDE "contents/automall/automall.css" */
         /* @INCLUDE "contents/belt-cost/belt-cost.css" */
+        /* @INCLUDE "contents/planet-tier/planet-tier.css" */
     </style>
 </head>
 <body>
@@ -40,6 +41,10 @@
                     <span class="tab-icon" data-image="space-platform-foundation:28"></span>
                     <span class="tab-text"><span class="tab-title">Platform&nbsp;Image</span><span class="tab-desc">Image → space platform</span></span>
                 </button>
+                <button class="tab-link" data-tab="planet-tier">
+                    <span class="tab-icon" data-image="nauvis:28"></span>
+                    <span class="tab-text"><span class="tab-title">Planet&nbsp;Tier</span><span class="tab-desc">Rank planets, save/restore state</span></span>
+                </button>
                 <button class="tab-link" data-tab="links">
                     <span class="tab-icon" data-image="rocket-silo:28"></span>
                     <span class="tab-text"><span class="tab-title">Links</span><span class="tab-desc">Handy Factorio resources</span></span>
@@ -63,6 +68,9 @@
                 </div>
                 <div class="tab-panel" data-tab="automall">
                     <!-- @INCLUDE "contents/automall/automall.html" -->
+                </div>
+                <div class="tab-panel" data-tab="planet-tier">
+                    <!-- @INCLUDE "contents/planet-tier/planet-tier.html" -->
                 </div>
                 <div class="tab-panel" data-tab="links">
                     <ul>
@@ -112,6 +120,7 @@
         // @INCLUDE "contents/automall/automall-blueprint-data.js"
         // @INCLUDE "contents/automall/automall-smelter.js"
         // @INCLUDE "contents/automall/automall.js"
+        // @INCLUDE "contents/planet-tier/planet-tier.js"
     </script>
     
     <!-- Include pako for zlib compression/decompression -->
