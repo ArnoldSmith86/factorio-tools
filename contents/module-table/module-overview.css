@@ -1,6 +1,6 @@
 .module-overview {
     margin-top: 20px;
-    overflow: hidden;
+    overflow-x: auto;
 }
 
 .module-overview h3 {

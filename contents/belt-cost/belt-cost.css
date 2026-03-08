@@ -1,6 +1,6 @@
 .belt-cost {
     margin-top: 20px;
-    overflow: hidden;
+    overflow-x: auto;
 }
 
 .belt-cost h3 {
