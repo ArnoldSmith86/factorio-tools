@@ -26,7 +26,7 @@ function getRequiredInputsFromTodo(todo) {
     });
 }
 
-function generateAutomallBlueprint(todoList) {
+function generateAutomallBlueprint(todoList, smeltOptions, requestedAmounts) {
     if (!Array.isArray(todoList)) {
         throw new Error('todo list must be an array');
     }
@@ -188,6 +188,15 @@ function generateAutomallBlueprint(todoList) {
         neededChecks[t.name] = t.start_count;
     }
 
+    if (typeof getSmelterConditions === 'function' && smeltOptions && Object.keys(smeltOptions).some((k) => smeltOptions[k] && smeltOptions[k].smelt)) {
+        const { conditions: smeltConds, filters: smeltFilters } = getSmelterConditions(smeltOptions, filters.length + 1);
+        if (smeltFilters.length) {
+            conditions.push(...smeltConds);
+            filters.push(...smeltFilters);
+            addSmelterToBlueprint(result, result.blueprint.entities[1].position);
+        }
+    }
+
     result.blueprint.entities[5].control_behavior.decider_conditions.conditions = conditions;
     result.blueprint.entities[6].control_behavior.sections.sections[0].filters = filters;
 
@@ -229,19 +238,50 @@ function generateAutomallBlueprint(todoList) {
 
     const requiredInputs = getRequiredInputsFromTodo(todoList);
     const bufferChest = result.blueprint.entities[1];
-    bufferChest.request_filters.sections[0].filters = requiredInputs.map((name, i) => {
-        const stack = AUTOMALL_STACK_SIZES[name] || 50;
-        const count = Math.max(1, stack - 3);
-        return {
-            index: i + 1,
-            name,
-            quality: "normal",
-            comparator: "=",
-            count
-        };
-    });
+    const requestPairs = buildBufferRequestList(requiredInputs, smeltOptions || {}, requestedAmounts || {});
+    bufferChest.request_filters.sections[0].filters = requestPairs.map(({ name, count }, i) => ({
+        index: i + 1,
+        name,
+        quality: "normal",
+        comparator: "=",
+        count: Math.max(1, count)
+    }));
 
     return result;
+}
+
+function resolveRequestName(name, smeltOptions) {
+    let requestName = name;
+    if (typeof isSmeltableBaseIngredient === 'function' && typeof getSmeltIngredient === 'function') {
+        while (isSmeltableBaseIngredient(requestName) && smeltOptions[requestName] && smeltOptions[requestName].smelt) {
+            const ing = getSmeltIngredient(requestName);
+            if (!ing) break;
+            requestName = ing;
+        }
+    }
+    return requestName;
+}
+
+function buildBufferRequestList(requiredInputs, smeltOptions, requestedAmounts) {
+    const byName = {};
+    const stackCount = (name) => Math.max(1, (AUTOMALL_STACK_SIZES[name] || 50) - 3);
+    const getCount = (name) => (requestedAmounts[name] != null ? Number(requestedAmounts[name]) : stackCount(name));
+    for (const name of requiredInputs) {
+        const smelt = typeof isSmeltableBaseIngredient === 'function' && isSmeltableBaseIngredient(name) && smeltOptions[name] && smeltOptions[name].smelt;
+        const requestName = smelt && typeof getSmeltIngredient === 'function' ? resolveRequestName(name, smeltOptions) : name;
+        if (!requestName) continue;
+        const count = getCount(requestName);
+        byName[requestName] = Math.max(byName[requestName] ?? 0, count);
+    }
+    const names = Object.keys(byName).sort((a, b) => {
+        const ia = automallSignalOrder.indexOf(a);
+        const ib = automallSignalOrder.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+    });
+    return names.map((name) => ({ name, count: byName[name] }));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -272,6 +312,37 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.querySelector('.automall-empty-row')?.remove();
     }
 
+    let smeltState = {};
+    let requestedAmounts = {};
+
+    function getDefaultRequestCount(name) {
+        return Math.max(1, (AUTOMALL_STACK_SIZES[name] || 50) - 3);
+    }
+
+    function getInputTableRows(inputs) {
+        const seen = new Set(inputs);
+        const rows = inputs.slice();
+        if (typeof getSmeltIngredient === 'function') {
+            inputs.forEach((name) => {
+                if (typeof isSmeltableBaseIngredient === 'function' && isSmeltableBaseIngredient(name) && smeltState[name]) {
+                    const ing = getSmeltIngredient(name);
+                    if (ing && !seen.has(ing)) {
+                        seen.add(ing);
+                        rows.push(ing);
+                    }
+                }
+            });
+        }
+        return rows.sort((a, b) => {
+            const ia = automallSignalOrder.indexOf(a);
+            const ib = automallSignalOrder.indexOf(b);
+            if (ia === -1 && ib === -1) return a.localeCompare(b);
+            if (ia === -1) return 1;
+            if (ib === -1) return -1;
+            return ia - ib;
+        });
+    }
+
     function renderRequiredInputs() {
         if (!inputsEl) return;
         const currentTodo = buildTodoFromTable();
@@ -282,36 +353,128 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const rows = getInputTableRows(inputs);
         const wrapper = document.createElement('div');
         const label = document.createElement('div');
+        label.className = 'automall-inputs-label';
         label.textContent = 'Required base inputs (not crafted earlier in this list):';
-        const list = document.createElement('div');
-        list.className = 'automall-input-list';
+        wrapper.appendChild(label);
 
-        inputs.forEach(name => {
-            const chip = document.createElement('div');
-            chip.className = 'automall-input-chip';
+        const table = document.createElement('table');
+        table.className = 'automall-table automall-inputs-table';
+        table.innerHTML = '<thead><tr><th>Item</th><th>Requested</th><th>Smelt</th></tr></thead>';
+        const tbody = document.createElement('tbody');
 
+        rows.forEach((name) => {
+            const tr = document.createElement('tr');
+            tr.dataset.inputName = name;
+            const isIngredient = inputs.indexOf(name) === -1;
+            const smeltedBy = isIngredient && typeof getSmeltIngredient === 'function'
+                ? SMELTABLE_BASE_ITEMS.find((s) => getSmeltIngredient(s) === name)
+                : null;
+            const isSmeltedItem = typeof isSmeltableBaseIngredient === 'function' && isSmeltableBaseIngredient(name) && smeltState[name];
+            const countDisabled = isSmeltedItem;
+
+            const itemCell = document.createElement('td');
             const img = document.createElement('img');
             img.src = toImageUrl(name);
             img.alt = name;
-            img.onerror = function () {
-                this.style.display = 'none';
-            };
-
+            img.className = 'entity-image';
+            img.onerror = function () { this.style.display = 'none'; };
             const span = document.createElement('span');
-            span.textContent = name;
+            span.textContent = name + (smeltedBy ? ` \u2192 ${smeltedBy}` : '');
+            itemCell.appendChild(img);
+            itemCell.appendChild(span);
+            tr.appendChild(itemCell);
 
-            chip.appendChild(img);
-            chip.appendChild(span);
-            list.appendChild(chip);
+            const requestedCell = document.createElement('td');
+            const countInput = document.createElement('input');
+            countInput.type = 'number';
+            countInput.min = '1';
+            countInput.value = String(requestedAmounts[name] != null ? requestedAmounts[name] : getDefaultRequestCount(name));
+            countInput.className = 'automall-input automall-requested';
+            countInput.disabled = countDisabled;
+            if (countDisabled) countInput.title = 'Disabled when smelting; request the ingredient instead.';
+            countInput.addEventListener('change', () => {
+                const v = parseInt(countInput.value, 10);
+                if (!Number.isNaN(v)) requestedAmounts[name] = v;
+            });
+            requestedCell.appendChild(countInput);
+            tr.appendChild(requestedCell);
+
+            const smeltCell = document.createElement('td');
+            if (typeof isSmeltableBaseIngredient === 'function' && isSmeltableBaseIngredient(name) && !isIngredient) {
+                const toggle = document.createElement('div');
+                toggle.className = 'automall-smelt-toggle';
+                toggle.dataset.smeltItem = name;
+                const setSmelt = (smelt) => {
+                    smeltState[name] = smelt;
+                    if (smelt && getSmeltIngredient(name)) {
+                        const ing = getSmeltIngredient(name);
+                        if (requestedAmounts[ing] == null) requestedAmounts[ing] = getDefaultRequestCount(ing);
+                    }
+                    toggle.querySelector('.automall-smelt-btn-buffer').classList.toggle('active', !smelt);
+                    toggle.querySelector('.automall-smelt-btn-furnace').classList.toggle('active', !!smelt);
+                    renderRequiredInputs();
+                };
+                const bufBtn = document.createElement('button');
+                bufBtn.type = 'button';
+                bufBtn.className = 'automall-smelt-btn automall-smelt-btn-buffer' + (smeltState[name] ? '' : ' active');
+                bufBtn.title = 'Request from buffer (don\'t smelt on site)';
+                const bufImg = document.createElement('img');
+                bufImg.src = toImageUrl('buffer chest');
+                bufImg.alt = 'Buffer';
+                bufImg.onerror = () => { bufImg.style.display = 'none'; };
+                bufBtn.appendChild(bufImg);
+                bufBtn.addEventListener('click', () => setSmelt(false));
+                const furnBtn = document.createElement('button');
+                furnBtn.type = 'button';
+                furnBtn.className = 'automall-smelt-btn automall-smelt-btn-furnace' + (smeltState[name] ? ' active' : '');
+                furnBtn.title = 'Smelt on site';
+                const furnImg = document.createElement('img');
+                furnImg.src = toImageUrl('electric furnace');
+                furnImg.alt = 'Smelt';
+                furnImg.onerror = () => { furnImg.style.display = 'none'; };
+                furnBtn.appendChild(furnImg);
+                furnBtn.addEventListener('click', () => setSmelt(true));
+                toggle.appendChild(bufBtn);
+                toggle.appendChild(furnBtn);
+                smeltCell.appendChild(toggle);
+            }
+            tr.appendChild(smeltCell);
+            tbody.appendChild(tr);
         });
 
-        wrapper.appendChild(label);
-        wrapper.appendChild(list);
-
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
         inputsEl.innerHTML = '';
         inputsEl.appendChild(wrapper);
+    }
+
+    function buildSmeltOptions(requiredInputs) {
+        const opts = {};
+        if (typeof isSmeltableBaseIngredient !== 'function') return opts;
+        requiredInputs.filter(isSmeltableBaseIngredient).forEach((name) => {
+            opts[name] = { smelt: !!smeltState[name], start_count: 200 };
+        });
+        return opts;
+    }
+
+    function buildRequestedAmountsFromTable() {
+        const currentTodo = buildTodoFromTable();
+        const inputs = getRequiredInputsFromTodo(currentTodo);
+        const rows = getInputTableRows(inputs);
+        const out = {};
+        rows.forEach((name) => {
+            const inputEl = inputsEl.querySelector(`tr[data-input-name="${name}"] .automall-requested`);
+            if (inputEl) {
+                const v = parseInt(inputEl.value, 10);
+                out[name] = !Number.isNaN(v) ? v : getDefaultRequestCount(name);
+            } else {
+                out[name] = requestedAmounts[name] != null ? requestedAmounts[name] : getDefaultRequestCount(name);
+            }
+        });
+        return out;
     }
 
     function appendRow(item) {
@@ -582,7 +745,10 @@ document.addEventListener('DOMContentLoaded', () => {
         encodeBtn.addEventListener('click', async () => {
             try {
                 const currentTodo = buildTodoFromTable();
-                const blueprintData = generateAutomallBlueprint(currentTodo);
+                const requiredInputs = getRequiredInputsFromTodo(currentTodo);
+                const smeltOptions = buildSmeltOptions(requiredInputs);
+                const requestedAmountsMap = buildRequestedAmountsFromTable();
+                const blueprintData = generateAutomallBlueprint(currentTodo, smeltOptions, requestedAmountsMap);
                 const blueprintString = encodeBlueprintData(blueprintData);
                 await navigator.clipboard.writeText(blueprintString);
                 statusEl.innerHTML = '<div class="success">Blueprint encoded and copied to clipboard.</div>';

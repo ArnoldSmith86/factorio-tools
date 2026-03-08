@@ -8,9 +8,29 @@
 }
 
 #automallInputs {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     color: #d4d4d4;
     font-size: 13px;
+}
+
+.automall-inputs-label {
+    margin-bottom: 6px;
+}
+
+.automall-inputs-table {
+    margin-top: 4px;
+}
+
+.automall-inputs-table .automall-requested {
+    width: 80px;
+}
+
+.automall-inputs-table td:nth-child(2) {
+    width: 100px;
+}
+
+.automall-inputs-table td:nth-child(3) {
+    width: 80px;
 }
 
 .automall-input-list {
@@ -33,6 +53,49 @@
     width: 20px;
     height: 20px;
     margin-right: 4px;
+}
+
+.automall-smelt-toggle {
+    display: inline-flex;
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #252526;
+}
+
+.automall-smelt-toggle .automall-smelt-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background-color: #2d2d30;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.automall-smelt-toggle .automall-smelt-btn + .automall-smelt-btn {
+    border-left: 1px solid #3e3e42;
+}
+
+.automall-smelt-toggle .automall-smelt-btn:hover {
+    background-color: #383838;
+}
+
+.automall-smelt-toggle .automall-smelt-btn.active {
+    background-color: #0e639c;
+}
+
+.automall-smelt-toggle .automall-smelt-btn.active:hover {
+    background-color: #1177bb;
+}
+
+.automall-smelt-toggle .automall-smelt-btn img {
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
 .automall-table {

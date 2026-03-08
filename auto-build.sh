@@ -11,6 +11,8 @@ if ! command -v inotifywait >/dev/null 2>&1; then
   exit 1
 fi
 
+./build.sh
+
 echo "Starting auto-build. Watching for changes..."
 echo "Press Ctrl+C to stop."
 
