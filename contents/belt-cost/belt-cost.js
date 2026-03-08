@@ -11,7 +11,7 @@
         { id: 'turbo-underground-belt', span: 12 },
     ];
 
-    const BASE_ITEMS = ['iron-plate', 'tungsten-plate'];
+    const BASE_ITEMS = ['iron-plate', 'tungsten-ore'];
     const RESOURCE_IDS = BASE_ITEMS.concat('lubricant');
     const ASSEMBLER_RESOURCE_IDS = ['iron-plate', 'lubricant'];
 
@@ -30,15 +30,19 @@
         return rec.producers && rec.producers.indexOf('foundry') !== -1;
     }
 
-    function getRecursiveCost(item, productivity = 1, targets = ['iron-plate', 'tungsten-plate', 'lubricant']) {
-        const rec = getRecipe(item);
+    function getRecursiveCost(item, productivity = 1, targets = ['iron-plate', 'tungsten-ore', 'lubricant']) {
+        const rec =  item === 'iron-gear-wheel' ? {in: {'molten-iron': 10}, out: {'iron-gear-wheel': 1}} : getRecipe(item);
         const steps = [];
         const targetCounts = {};
         const outCount = rec.out[item];
         const prodDisplay = productivity === 1 ? '' : `/${productivity}`;
         const outCountDisplay = outCount === 1 ? '' : `/${outCount}`;
         const step = `<span data-image="${item}:20"></span> = ${Object.entries(rec.in).map(([inItem, inCount]) => `${inCount}${outCountDisplay}${prodDisplay} <span data-image="${inItem}:20"></span>`).join(' + ')} = ${Object.entries(rec.in).map(([inItem, inCount]) => `${Math.round(inCount / outCount / productivity * 10) / 10} <span data-image="${inItem}:20"></span>`).join(' + ')}`;
-        for (const [inItem, inCount] of Object.entries(rec.in)) {
+        for (let [inItem, inCount] of Object.entries(rec.in)) {
+            if(inItem == 'molten-iron') {
+                inItem = 'iron-plate';
+                inCount = inCount / 10;
+            }
             if (targets.includes(inItem)) {
                 targetCounts[inItem] = (targetCounts[inItem] || 0) + inCount / outCount / productivity;
             } else {
@@ -115,7 +119,7 @@
         tooltipLine(root, 'Total (assembler):');
         tooltipLineWithIcons(root, [
             { icon: 'iron-plate', text: ' ' + formatAmount(costAssembler.targetCounts['iron-plate'] || 0) + '  ' },
-            { icon: 'tungsten-plate', text: ' ' + formatAmount(costAssembler.targetCounts['tungsten-plate'] || 0) + '  ' },
+            { icon: 'tungsten-ore', text: ' ' + formatAmount(costAssembler.targetCounts['tungsten-ore'] || 0) + '  ' },
             { icon: 'lubricant', text: ' ' + formatAmount(costAssembler.targetCounts.lubricant || 0) },
         ]);
 
@@ -127,7 +131,7 @@
         tooltipLine(root, 'Total (foundry):');
         tooltipLineWithIcons(root, [
             { icon: 'iron-plate', text: ' ' + formatAmount(costFoundry.targetCounts['iron-plate'] || 0) + '  ' },
-            { icon: 'tungsten-plate', text: ' ' + formatAmount(costFoundry.targetCounts['tungsten-plate'] || 0) + '  ' },
+            { icon: 'tungsten-ore', text: ' ' + formatAmount(costFoundry.targetCounts['tungsten-ore'] || 0) + '  ' },
             { icon: 'lubricant', text: ' ' + formatAmount(costFoundry.targetCounts.lubricant || 0) },
         ]);
 
@@ -146,7 +150,7 @@
         tooltipLine(root, 'Foundry per tile:');
         tooltipLineWithIcons(root, [
             { icon: 'iron-plate', text: ' ' + formatAmount(perTileFoundry['iron-plate']) + '  ' },
-            { icon: 'tungsten-plate', text: ' ' + formatAmount(perTileFoundry['tungsten-plate']) + '  ' },
+            { icon: 'tungsten-ore', text: ' ' + formatAmount(perTileFoundry['tungsten-ore']) + '  ' },
             { icon: 'lubricant', text: ' ' + formatAmount(perTileFoundry.lubricant) },
         ]);
 
@@ -192,12 +196,12 @@
             const tilesPerResult = row.span != null ? row.span : 1;
             const perTileAssembler = {
                 'iron-plate': (total['iron-plate'] || 0) * undergroundMult / tilesPerResult,
-                'tungsten-plate': (total['tungsten-plate'] || 0) * undergroundMult / tilesPerResult,
+                'tungsten-ore': (total['tungsten-ore'] || 0) * undergroundMult / tilesPerResult,
                 lubricant: (total.lubricant || 0) * undergroundMult / tilesPerResult,
             };
             const perTileFoundry = {
                 'iron-plate': (totalFoundry['iron-plate'] || 0) * undergroundMult / tilesPerResult,
-                'tungsten-plate': (totalFoundry['tungsten-plate'] || 0) * undergroundMult / tilesPerResult,
+                'tungsten-ore': (totalFoundry['tungsten-ore'] || 0) * undergroundMult / tilesPerResult,
                 lubricant: (totalFoundry.lubricant || 0) * undergroundMult / tilesPerResult,
             };
             const hasA = hasAssembler(rec);
