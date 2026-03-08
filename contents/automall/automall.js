@@ -11,6 +11,18 @@ const AUTOMALL_RECIPES = (() => {
     return out;
 })();
 
+// curl -L https://github.com/factoriolab/factoriolab/raw/refs/heads/main/src/data/spa/data.json | jq '[.items[] | select(.category != "technology") | select(.category != "fluids") | {(.id): (.stack // .stack_size // 1)}] | add'
+const AUTOMALL_STACK_SIZES = (() => {
+    if (typeof data === 'undefined' || !Array.isArray(data.items)) return {};
+    const out = {};
+    data.items.forEach((it) => {
+        if (it.category !== 'technology' && it.category !== 'fluids') {
+            out[it.id] = it.stack ?? it.stack_size ?? 1;
+        }
+    });
+    return out;
+})();
+
 function getRequiredInputsFromTodo(todo) {
     const producedSoFar = new Set();
     const requiredInputs = new Set();
