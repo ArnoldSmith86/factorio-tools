@@ -65,3 +65,30 @@
     display: block;
 }
 
+@media (max-width: 1240px) {
+    .tab-link {
+        flex-direction: column;
+        width: 3.5em;
+        overflow: hidden;
+    }
+    .tab-text {
+        order: 1;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 14em;
+        height: 14em;
+        transform: rotate(-90deg);
+        transform-origin: center center;
+    }
+    .tab-text .tab-title,
+    .tab-text .tab-desc {
+        white-space: nowrap;
+    }
+    .tab-icon {
+        order: 2;
+        flex: 0 0 28px;
+        transform: rotate(-90deg);
+    }
+}
+
