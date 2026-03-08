@@ -1,3 +1,5 @@
+const automallSignalOrder = data.icons.map((i) => i.id);
+
 function getRequiredInputsFromTodo(todo) {
     const producedSoFar = new Set();
     const requiredInputs = new Set();
