@@ -23,6 +23,15 @@ const AUTOMALL_STACK_SIZES = (() => {
     return out;
 })();
 
+const AUTOMALL_ADD_EXCLUDED = new Set(['plastic', 'iron-plate', 'copper-plate', 'coal', 'stone', 'brick', 'steel']);
+
+function getMissingIngredientsForRow(todo, rowIndex) {
+    const recipe = AUTOMALL_RECIPES[todo[rowIndex]?.name];
+    if (!Array.isArray(recipe) || !recipe.length) return [];
+    const producedSoFar = new Set(todo.slice(0, rowIndex).map((e) => e.name).filter(Boolean));
+    return recipe.filter((ing) => !producedSoFar.has(ing) && !AUTOMALL_ADD_EXCLUDED.has(ing));
+}
+
 function getRequiredInputsFromTodo(todo) {
     const producedSoFar = new Set();
     const requiredInputs = new Set();
@@ -468,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.appendChild(table);
         inputsEl.innerHTML = '';
         inputsEl.appendChild(wrapper);
+        refreshMissingIngredientButtons();
     }
 
     function buildSmeltOptions(requiredInputs) {
@@ -496,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return out;
     }
 
-    function appendRow(item) {
+    function addRow(item, insertBeforeRow = null) {
         const row = document.createElement('tr');
         row.classList.add('automall-row');
         row.draggable = true;
@@ -508,8 +518,11 @@ document.addEventListener('DOMContentLoaded', () => {
         iconSpan.setAttribute('data-image', `${itemNameToIconId(item.name)}:32`);
         const label = document.createElement('span');
         label.textContent = ` ${item.name}`;
+        const addIngredientWrap = document.createElement('span');
+        addIngredientWrap.className = 'automall-row-add-ingredients';
         itemCell.appendChild(iconSpan);
         itemCell.appendChild(label);
+        itemCell.appendChild(addIngredientWrap);
         row.appendChild(itemCell);
 
         const startCell = document.createElement('td');
@@ -575,9 +588,42 @@ document.addEventListener('DOMContentLoaded', () => {
         row.appendChild(actionsCell);
 
         removeEmptyStateRow();
-        tbody.appendChild(row);
+        if (insertBeforeRow) {
+            tbody.insertBefore(row, insertBeforeRow);
+        } else {
+            tbody.appendChild(row);
+        }
 
         renderRequiredInputs();
+    }
+
+    function refreshMissingIngredientButtons() {
+        const todo = buildTodoFromTable();
+        const rows = Array.from(tbody.querySelectorAll('tr.automall-row'));
+        rows.forEach((row, index) => {
+            const wrap = row.querySelector('.automall-row-add-ingredients');
+            if (!wrap) return;
+            wrap.textContent = '';
+            const missing = getMissingIngredientsForRow(todo, index);
+            missing.forEach((name) => {
+                const stack = AUTOMALL_STACK_SIZES[name] || 50;
+                const stop_count = stack;
+                const start_count = Math.max(1, Math.floor(stack * 0.1));
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'automall-add-ingredient-btn';
+                btn.title = `Add ${name} above`;
+                const plus = document.createElement('span');
+                plus.textContent = '+';
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'entity-image';
+                iconSpan.setAttribute('data-image', `${itemNameToIconId(name)}:20`);
+                btn.appendChild(plus);
+                btn.appendChild(iconSpan);
+                btn.addEventListener('click', () => addRow({ name, start_count, stop_count }, row));
+                wrap.appendChild(btn);
+            });
+        });
     }
 
     function renderInitialTable() {
@@ -585,9 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (AUTOMALL_TODO.length === 0) {
             addEmptyStateRow();
         } else {
-            AUTOMALL_TODO.forEach(item => {
-                appendRow(item);
-            });
+            AUTOMALL_TODO.forEach((item) => addRow(item));
         }
         renderRequiredInputs();
     }
@@ -655,11 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const stack = AUTOMALL_STACK_SIZES[name] || 50;
                 const stop_count = stack;
                 const start_count = Math.max(1, Math.floor(stack * 0.1));
-                appendRow({
-                    name,
-                    start_count,
-                    stop_count
-                });
+                addRow({ name, start_count, stop_count });
                 closePicker();
             });
 

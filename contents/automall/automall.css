@@ -249,6 +249,37 @@
     height: 24px;
 }
 
+.automall-row-add-ingredients {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.automall-add-ingredient-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 3px;
+    font-size: 12px;
+    line-height: 1;
+    background-color: #2d2d30;
+    border: 1px solid #3e3e42;
+    border-radius: 3px;
+    color: #d4d4d4;
+    cursor: pointer;
+}
+
+.automall-add-ingredient-btn:hover {
+    background-color: #0e639c;
+    border-color: #1177bb;
+}
+
+.automall-add-ingredient-btn .entity-image {
+    display: block;
+}
+
 .automall-row-actions {
     display: flex;
     gap: 4px;
