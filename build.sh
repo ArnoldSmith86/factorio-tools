@@ -21,4 +21,4 @@ awk '
     }
   }
 ' index.htm > dist/index.htm
-
+cp data/*.webp dist/

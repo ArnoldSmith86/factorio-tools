@@ -381,21 +381,17 @@ class BlueprintEditor {
         tableHTML += '<tbody>';
         
         sortedItems.forEach(item => {
-            const imageUrl = toImageUrl(item.name);
             const qualityText = item.quality.charAt(0).toUpperCase() + item.quality.slice(1);
-            const qualityImageUrl = qualityText === 'Normal' ? '' : qualityToImage(item.quality);
             const displayName = item.quality === 'normal' ? item.name : `${qualityText} ${item.name}`;
-            
+            const iconId = itemNameToIconId(item.name);
+            const dataImage = item.quality === 'normal' ? `${iconId}:32` : `${item.quality}:${iconId}:32`;
             tableHTML += `
                 <tr>
                     <td class="downgrade-column" style="text-align: right;"></td>
                     <td>
                         <div class="tooltip">
                             <div class="entity-image-container">
-                                <img src="${imageUrl}" alt="${item.name}" class="entity-image" onerror="this.style.display='none'">
-                                <div class="quality-overlay">
-                                    <img src="${qualityImageUrl}" alt="${qualityText}" onerror="this.style.display='none'">
-                                </div>
+                                <span class="entity-image" data-image="${dataImage}"></span>
                             </div>
                             <span class="tooltiptext">${displayName}</span>
                         </div>

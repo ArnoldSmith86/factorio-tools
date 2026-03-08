@@ -1,0 +1,1 @@
+These files come from https://github.com/factoriolab/factoriolab/tree/main/src/data/spa and https://github.com/factoriolab/factoriolab/blob/main/src/assets/icons/icons.webp. Factoriolab is MIT licence but the data and icons come from Factorio.

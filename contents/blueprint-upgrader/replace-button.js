@@ -25,17 +25,13 @@ class ReplaceButton {
             targetBaseName = targetParts.slice(1).join(' ');
         }
         
-        const targetImageUrl = toImageUrl(targetBaseName);
-        const targetQualityText = targetQuality.charAt(0).toUpperCase() + targetQuality.slice(1);
-        const targetQualityImageUrl = targetQuality === 'normal' ? '' : qualityToImage(targetQuality);
-        
+        const iconId = itemNameToIconId(targetBaseName);
+        const dataImage = targetQuality === 'normal' ? `${iconId}:32` : `${targetQuality}:${iconId}:32`;
         this.buttonElement.innerHTML = `
             <div style="position: relative; width: 32px; height: 32px;">
-                <img src="${targetImageUrl}" alt="${targetBaseName}" style="width: 32px; height: 32px;" onerror="this.style.display='none'">
-                ${targetQualityImageUrl ? `<img src="${targetQualityImageUrl}" alt="${targetQualityText}" style="position: absolute; bottom: 0; left: 0; width: 12.8px; height: 12.8px;" onerror="this.style.display='none'">` : ''}
+                <span data-image="${dataImage}" style="display: block; width: 32px; height: 32px;"></span>
             </div>
         `;
-        
         this.buttonElement.addEventListener('click', () => {
             this.toggleActive();
         });

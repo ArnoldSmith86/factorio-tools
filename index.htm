@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <title>Arnold's Factorio Tools</title>
     <style>
         /* @INCLUDE "common/layout.css" */
         /* @INCLUDE "common/tabs.css" */
+        /* @INCLUDE "common/images.css" */
         /* @INCLUDE "contents/blueprint-upgrader/blueprint-editor.css" */
         /* @INCLUDE "contents/module-table/module-overview.css" */
         /* @INCLUDE "contents/automall/automall.css" */
@@ -20,23 +20,23 @@
             <h1 class="app-title">Arnold's Factorio Tools</h1>
             <div class="tabs">
                 <button class="tab-link active" data-tab="blueprint-upgrader">
-                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Blueprint.png/32px-Blueprint.png" alt="">
+                    <span class="tab-icon" data-image="construction-robot:28"></span>
                     <span class="tab-text"><span class="tab-title">Blueprint Upgrader</span><span class="tab-desc">Upgrade/downgrade + search/replace</span></span>
                 </button>
                 <button class="tab-link" data-tab="module-table">
-                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Productivity_module.png/32px-Productivity_module.png" alt="">
+                    <span class="tab-icon" data-image="productivity-module:28"></span>
                     <span class="tab-text"><span class="tab-title">Module Table</span><span class="tab-desc">Compare module stats</span></span>
                 </button>
                 <button class="tab-link" data-tab="automall">
-                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Buffer_chest.png/32px-Buffer_chest.png" alt="">
+                    <span class="tab-icon" data-image="buffer-chest:28"></span>
                     <span class="tab-text"><span class="tab-title">Automall</span><span class="tab-desc">Automall combinator helper</span></span>
                 </button>
                 <button class="tab-link" data-tab="platform-image">
-                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Space_platform_foundation.png/32px-Space_platform_foundation.png" alt="">
+                    <span class="tab-icon" data-image="space-platform-foundation:28"></span>
                     <span class="tab-text"><span class="tab-title">Platform Image</span><span class="tab-desc">Image → space platform</span></span>
                 </button>
                 <button class="tab-link" data-tab="links">
-                    <img class="tab-icon" src="https://wiki.factorio.com/images/thumb/Rocket_silo.png/32px-Rocket_silo.png" alt="">
+                    <span class="tab-icon" data-image="rocket-silo:28"></span>
                     <span class="tab-text"><span class="tab-title">Links</span><span class="tab-desc">Handy Factorio resources</span></span>
                 </button>
             </div>
@@ -81,6 +81,7 @@
     </div>
 
     <script>
+        // @INCLUDE "data/data.js"
         // @INCLUDE "common/blueprint-string.js"
         // @INCLUDE "contents/module-table/generate-table.js"
 

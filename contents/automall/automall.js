@@ -376,14 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const countDisabled = isSmeltedItem;
 
             const itemCell = document.createElement('td');
-            const img = document.createElement('img');
-            img.src = toImageUrl(name);
-            img.alt = name;
-            img.className = 'entity-image';
-            img.onerror = function () { this.style.display = 'none'; };
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'entity-image';
+            iconSpan.setAttribute('data-image', `${itemNameToIconId(name)}:32`);
             const span = document.createElement('span');
             span.textContent = name + (smeltedBy ? ` \u2192 ${smeltedBy}` : '');
-            itemCell.appendChild(img);
+            itemCell.appendChild(iconSpan);
             itemCell.appendChild(span);
             tr.appendChild(itemCell);
 
@@ -421,21 +419,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 bufBtn.type = 'button';
                 bufBtn.className = 'automall-smelt-btn automall-smelt-btn-buffer' + (smeltState[name] ? '' : ' active');
                 bufBtn.title = 'Request from buffer (don\'t smelt on site)';
-                const bufImg = document.createElement('img');
-                bufImg.src = toImageUrl('buffer chest');
-                bufImg.alt = 'Buffer';
-                bufImg.onerror = () => { bufImg.style.display = 'none'; };
-                bufBtn.appendChild(bufImg);
+                const bufIcon = document.createElement('span');
+                bufIcon.setAttribute('data-image', 'buffer-chest:32');
+                bufBtn.appendChild(bufIcon);
                 bufBtn.addEventListener('click', () => setSmelt(false));
                 const furnBtn = document.createElement('button');
                 furnBtn.type = 'button';
                 furnBtn.className = 'automall-smelt-btn automall-smelt-btn-furnace' + (smeltState[name] ? ' active' : '');
                 furnBtn.title = 'Smelt on site';
-                const furnImg = document.createElement('img');
-                furnImg.src = toImageUrl('electric furnace');
-                furnImg.alt = 'Smelt';
-                furnImg.onerror = () => { furnImg.style.display = 'none'; };
-                furnBtn.appendChild(furnImg);
+                const furnIcon = document.createElement('span');
+                furnIcon.setAttribute('data-image', 'electric-furnace:32');
+                furnBtn.appendChild(furnIcon);
                 furnBtn.addEventListener('click', () => setSmelt(true));
                 toggle.appendChild(bufBtn);
                 toggle.appendChild(furnBtn);
@@ -484,16 +478,12 @@ document.addEventListener('DOMContentLoaded', () => {
         row.dataset.itemName = item.name;
 
         const itemCell = document.createElement('td');
-        const img = document.createElement('img');
-        img.src = toImageUrl(item.name);
-        img.alt = item.name;
-        img.className = 'entity-image';
-        img.onerror = function () {
-            this.style.display = 'none';
-        };
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'entity-image';
+        iconSpan.setAttribute('data-image', `${itemNameToIconId(item.name)}:32`);
         const label = document.createElement('span');
         label.textContent = ` ${item.name}`;
-        itemCell.appendChild(img);
+        itemCell.appendChild(iconSpan);
         itemCell.appendChild(label);
         row.appendChild(itemCell);
 
@@ -626,17 +616,14 @@ document.addEventListener('DOMContentLoaded', () => {
             option.type = 'button';
             option.className = 'automall-item-option';
 
-            const img = document.createElement('img');
-            img.src = toImageUrl(name);
-            img.alt = name;
-            img.onerror = function () {
-                this.style.display = 'none';
-            };
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'entity-image';
+            iconSpan.setAttribute('data-image', `${itemNameToIconId(name)}:24`);
 
             const label = document.createElement('span');
             label.textContent = name;
 
-            option.appendChild(img);
+            option.appendChild(iconSpan);
             option.appendChild(label);
 
             option.addEventListener('click', () => {

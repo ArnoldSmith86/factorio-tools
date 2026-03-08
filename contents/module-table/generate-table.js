@@ -92,27 +92,13 @@ function generateModuleTable() {
             
             const imageContainer = document.createElement('div');
             imageContainer.className = 'entity-image-container';
-            
-            const img = document.createElement('img');
-            const tierSuffix = module.tier > 1 ? `_${module.tier}` : '';
-            img.src = `https://wiki.factorio.com/images/thumb/${baseName}${tierSuffix}.png/32px-${baseName}${tierSuffix}.png`;
-            img.alt = `${module.quality} ${moduleType} module${module.tier > 1 ? ` ${module.tier}` : ''}`;
-            img.className = 'entity-image';
-            img.onerror = "this.style.display='none'";
-            
-            imageContainer.appendChild(img);
-            
-            // Add quality overlay if not normal
-            if (module.quality.toLowerCase() !== 'normal') {
-                const qualityOverlay = document.createElement('div');
-                qualityOverlay.className = 'quality-overlay';
-                const qualityImg = document.createElement('img');
-                qualityImg.src = `https://wiki.factorio.com/images/Quality_${module.quality.toLowerCase()}.png`;
-                qualityImg.alt = module.quality.toLowerCase();
-                qualityImg.onerror = "this.style.display='none'";
-                qualityOverlay.appendChild(qualityImg);
-                imageContainer.appendChild(qualityOverlay);
-            }
+            const moduleIconId = `${moduleType.toLowerCase()}-module${module.tier > 1 ? `-${module.tier}` : ''}`;
+            const quality = module.quality.toLowerCase();
+            const dataImage = quality === 'normal' ? `${moduleIconId}:32` : `${quality}:${moduleIconId}:32`;
+            const moduleIcon = document.createElement('span');
+            moduleIcon.className = 'entity-image';
+            moduleIcon.setAttribute('data-image', dataImage);
+            imageContainer.appendChild(moduleIcon);
             
             const tooltipText = document.createElement('span');
             tooltipText.className = 'tooltiptext';

@@ -1,0 +1,35 @@
+span.image {
+    position: relative;
+    display: inline-block;
+    width: calc(var(--size) * 1px);
+    height: calc(var(--size) * 1px);
+    vertical-align: middle;
+}
+
+span.image::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(calc(var(--size) / 64));
+    transform-origin: 0 0;
+    background-image: url('icons.webp');
+    width: 64px;
+    height: 64px;
+    content: "";
+    pointer-events: none;
+    background-position: calc(var(--x) * -66px) calc(var(--y) * -66px);
+}
+
+span.image[data-quality]::after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(calc(var(--size) / 64));
+    transform-origin: 0 0;
+    width: 64px;
+    height: 64px;
+    content: "";
+    pointer-events: none;
+    background-image: url('quality-icons.webp');
+    background-position: calc(var(--quality-index) * -64px) -192px;
+}
